@@ -39,7 +39,9 @@ add_library(${PROJECT_NAME}.libs SHARED
 ament_target_dependencies(${PROJECT_NAME}.libs
   "rclcpp"
   "std_msgs"
+  "builtin_interfaces"
   "geometry_msgs"
+  "diagnostic_msgs"
   "sensor_msgs"
   "nav_msgs"
   "std_srvs"

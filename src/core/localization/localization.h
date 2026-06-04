@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "std_msgs/msg/int32.hpp"
@@ -64,9 +64,7 @@ class Localization {
     /// 由外部设置pose，适用于手动重定位
     void SetExternalPose(const Eigen::Quaterniond& q, const Eigen::Vector3d& t);
 
-    /// TODO: 其他初始化逻辑
 
-    /// TODO: 处理odom消息
 
     /// 结束，保存临时地图
     void Finish();
@@ -76,11 +74,13 @@ class Localization {
     void LidarLocProcCloud(CloudPtr);
 
     using TFCallback = std::function<void(const geometry_msgs::msg::TransformStamped& odom)>;
+    using ResultCallback = std::function<void(const LocalizationResult& result)>;
     using LocStateCallback = std::function<void(const std_msgs::msg::Int32& state)>;
     using PointcloudBodyCallback = std::function<void(const sensor_msgs::msg::PointCloud2& pointcloud)>;
     using PointcloudWorldCallback = std::function<void(const sensor_msgs::msg::PointCloud2& pointcloud)>;
 
     void SetTFCallback(TFCallback&& callback);
+    void SetResultCallback(ResultCallback&& callback);
 
     // void SetPathCallback(std::function<void(const nav_msgs::msg::Path& path)>&& callback);
     // void SetPointcloudWorldCallback(std::function<void(const sensor_msgs::msg::PointCloud2& pointcloud)>&& callback);
@@ -109,7 +109,7 @@ class Localization {
     // lidar localization
     std::shared_ptr<LidarLoc> lidar_loc_;
 
-    /// TODO async 处理
+    /// Asynchronous lidar odom and localization processing.
     sys::AsyncMessageProcess<CloudPtr> lidar_odom_proc_cloud_;  // lidar odom 处理点云
     sys::AsyncMessageProcess<CloudPtr> lidar_loc_proc_cloud_;   // lidar loc 处理点云
 
@@ -118,6 +118,7 @@ class Localization {
 
     /// 框架相关
     TFCallback tf_callback_;
+    ResultCallback result_callback_;
     LocStateCallback loc_state_callback_;
     PointcloudBodyCallback pointcloud_body_callback_;
     PointcloudWorldCallback pointcloud_world_callback_;

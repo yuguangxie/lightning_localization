@@ -11,6 +11,5 @@
 | R7 | 继承了 `./data/tgt.pcd` 调试 dump | 在线磁盘 IO 开销和文件覆盖风险 | 阶段一保持行为，阶段二改为可开关 | 已记录静态风险 |
 | R8 | PGO YAML 字段可能未完全驱动当前 PGO 实现 | 配置预期可能与运行时偏离 | 保留原行为并记录参数注意事项 | 已记录静态风险 |
 | R9 | 复制后的 service 包名从上游 `lightning` 变为 `lightning_localization` | 下游包含生成 service 头文件的代码可能需要更新包名 | 定位运行时未包含这些头文件，文档化接口边界 | 待人工集成验证 |
-| R10 | 文件系统目录为 `lightning_localization_v1/`，ROS package 名为 `lightning_localization` | 操作者可能期望目录名与 ROS package 名一致 | 在 README、计划、审计报告和最终报告中说明差异 | 已记录静态风险 |
+| R10 | 文件系统目录和 ROS package 名均为 `lightning_localization` | 早期阶段一记录使用了过期目录名 | 保持文档与实际包目录一致 | 已在 topic 输出增强中更新 |
 | R11 | Master prompt 引用了 `plans/stage-one-extraction-plan.md`，但初始工作区缺少该文件 | 执行包证据可能不完整 | 基于 master prompt 和当前 package 证据补建计划文件 | 已记录静态风险 |
-

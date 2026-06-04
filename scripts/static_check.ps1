@@ -28,9 +28,12 @@ $Required = @(
     "docs/architecture.md",
     "docs/io-spec.md",
     "docs/config-parameters.md",
+    "docs/ros2-topic-publication-audit.md",
+    "docs/ros2-output-topics.md",
     "docs/manual-ros2-validation.md",
     "docs/stage-one-acceptance-checklist.md",
     "docs/stage-one-static-audit-report.md",
+    "docs/stage-one-topic-output-enhancement-report.md",
     "docs/stage-one-final-report.md"
 )
 
@@ -70,6 +73,28 @@ foreach ($Rel in $Searchable) {
     foreach ($Pattern in $ForbiddenRuntimePatterns) {
         if ($Text.Contains($Pattern)) {
             $Failures.Add("forbidden runtime pattern in ${Rel}: $Pattern")
+        }
+    }
+}
+
+$RequiredPatterns = @{
+    "package.xml" = @("builtin_interfaces", "diagnostic_msgs", "nav_msgs", "geometry_msgs", "std_msgs")
+    "cmake/packages.cmake" = @("find_package(builtin_interfaces REQUIRED)", "find_package(diagnostic_msgs REQUIRED)", "find_package(nav_msgs REQUIRED)")
+    "src/CMakeLists.txt" = @('"builtin_interfaces"', '"diagnostic_msgs"', '"nav_msgs"')
+    "src/core/system/loc_system.h" = @("rclcpp::Publisher<geometry_msgs::msg::PoseStamped>", "rclcpp::Publisher<std_msgs::msg::String>", "rclcpp::Publisher<diagnostic_msgs::msg::DiagnosticArray>", "rclcpp::Publisher<nav_msgs::msg::Odometry>")
+    "src/core/system/loc_system.cc" = @("create_publisher<geometry_msgs::msg::PoseStamped>", "create_publisher<std_msgs::msg::String>", "create_publisher<diagnostic_msgs::msg::DiagnosticArray>", "create_publisher<nav_msgs::msg::Odometry>", "PublishLocalizationTopics")
+    "config/default.yaml" = @("ros_output:", "publish_pose:", "publish_status:", "publish_diagnostics:", "publish_odometry:")
+}
+
+foreach ($Rel in $RequiredPatterns.Keys) {
+    $Path = Join-Path $Root $Rel
+    if (-not (Test-Path $Path)) {
+        continue
+    }
+    $Text = Get-Content -Raw -Encoding UTF8 $Path
+    foreach ($Pattern in $RequiredPatterns[$Rel]) {
+        if (-not $Text.Contains($Pattern)) {
+            $Failures.Add("missing required pattern in ${Rel}: $Pattern")
         }
     }
 }

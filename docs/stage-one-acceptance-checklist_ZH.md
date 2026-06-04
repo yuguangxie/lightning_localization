@@ -4,7 +4,7 @@
 
 | 项 | 结果 | 证据 |
 |---|---|---|
-| 独立 ROS2 package 目录存在 | 通过 | `lightning_localization_v1/`；ROS package 名为 `lightning_localization` |
+| 独立 ROS2 package 目录存在 | 通过 | `lightning_localization/`；ROS package 名为 `lightning_localization` |
 | `package.xml` 存在 | 通过 | `package.xml` |
 | `CMakeLists.txt` 存在 | 通过 | `CMakeLists.txt` |
 | `src/` 和 `include/` 存在 | 通过 | `src/`, `include/README.md` |
@@ -75,4 +75,3 @@
 - RViz 检查 `map -> base_link` TF
 - Pangolin 运行时检查
 - 与上游 lightning-lm 对比轨迹、confidence、状态和耗时
-

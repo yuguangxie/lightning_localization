@@ -1,4 +1,4 @@
-#include <pcl/common/transforms.h>
+﻿#include <pcl/common/transforms.h>
 #include <pcl_conversions/pcl_conversions.h>
 
 #include "core/localization/lidar_loc/lidar_loc.h"
@@ -86,7 +86,7 @@ bool Localization::Init(const std::string& yaml_path, const std::string& global_
         lidar_loc_proc_cloud_.Start();
     }
 
-    /// TODO: 发布
+    /// Publish high-frequency localization results to registered callbacks.
     pgo_->SetHighFrequencyGlobalOutputHandleFunction([this](const LocalizationResult& res) {
         // if (loc_result_.timestamp_ > 0) {
         //             double loc_fps = 1.0 / (res.timestamp_ - loc_result_.timestamp_);
@@ -97,6 +97,10 @@ bool Localization::Init(const std::string& yaml_path, const std::string& global_
 
         if (tf_callback_ && loc_result_.valid_) {
             tf_callback_(loc_result_.ToGeoMsg());
+        }
+
+        if (result_callback_) {
+            result_callback_(loc_result_);
         }
 
         if (ui_) {
@@ -347,5 +351,7 @@ void Localization::SetExternalPose(const Eigen::Quaterniond& q, const Eigen::Vec
 }
 
 void Localization::SetTFCallback(Localization::TFCallback&& callback) { tf_callback_ = callback; }
+
+void Localization::SetResultCallback(Localization::ResultCallback&& callback) { result_callback_ = callback; }
 
 }  // namespace lightning::loc

@@ -1,4 +1,4 @@
-# 人工 ROS2 验证
+﻿# 人工 ROS2 验证
 
 ## 环境
 
@@ -27,8 +27,8 @@ source install/setup.bash
 
 预期验收：
 
-- `run_loc_online` 可执行文件存在于 `install/lightning_localization/lib/lightning_localization/`。
-- `run_loc_offline` 可执行文件存在于 `install/lightning_localization/lib/lightning_localization/`。
+- `run_loc_online` 可执行文件存在于 `install/localization/lib/localization/`。
+- `run_loc_offline` 可执行文件存在于 `install/localization/lib/localization/`。
 - Livox 自定义消息头已生成。
 
 ## 离线行为对比
@@ -90,4 +90,5 @@ rviz2
 - 平均和 P95 处理耗时
 
 由于当前 Codex 工作区没有 ROS2、colcon、bag 或 map 数据，所有指标对比均待人工 ROS2 环境验证。
+
 

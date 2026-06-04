@@ -8,7 +8,7 @@ Audit was performed in a Windows workspace without ROS2, without colcon, and wit
 
 | Item | Result | Evidence |
 |---|---|---|
-| Standalone package directory | pass | filesystem directory `lightning_localization_v1/` exists; ROS package name is `lightning_localization` |
+| Standalone package directory | pass | filesystem directory `lightning_localization/` exists; ROS package name is `lightning_localization` |
 | Online entry | pass | `src/app/run_loc_online.cc` |
 | Offline entry | pass | `src/app/run_loc_offline.cc` |
 | ROS2 package manifest | pass | `package.xml` |

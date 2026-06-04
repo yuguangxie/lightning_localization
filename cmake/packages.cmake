@@ -8,7 +8,9 @@ find_package(pcl_conversions REQUIRED)
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(builtin_interfaces REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(diagnostic_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
@@ -43,7 +45,9 @@ include_directories(
   ${pcl_conversions_INCLUDE_DIRS}
   ${rclcpp_INCLUDE_DIRS}
   ${rosbag2_cpp_INCLUDE_DIRS}
+  ${builtin_interfaces_INCLUDE_DIRS}
   ${nav_msgs_INCLUDE_DIRS}
+  ${diagnostic_msgs_INCLUDE_DIRS}
 )
 
 include_directories(

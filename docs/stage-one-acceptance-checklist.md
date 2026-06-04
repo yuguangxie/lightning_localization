@@ -4,7 +4,7 @@
 
 | Item | Result | Evidence |
 |---|---|---|
-| Standalone ROS2 package directory exists | pass | `lightning_localization_v1/`; ROS package name `lightning_localization` |
+| Standalone ROS2 package directory exists | pass | `lightning_localization/`; ROS package name `lightning_localization` |
 | `package.xml` exists | pass | `package.xml` |
 | `CMakeLists.txt` exists | pass | `CMakeLists.txt` |
 | `src/` and `include/` exist | pass | `src/`, `include/README.md` |

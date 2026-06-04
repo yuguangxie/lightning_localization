@@ -2,7 +2,7 @@
 
 ## 结果
 
-阶段一使用 `lightning_localization_v1/` 作为原始 lightning-lm 定位运行时的独立 ROS2 package 目录。其 ROS package 名为 `lightning_localization`。本次剥离保持默认 NDT-OMP 行为，未引入阶段二工业级匹配后端重构。
+阶段一使用 `lightning_localization/` 作为原始 lightning-lm 定位运行时的独立 ROS2 package 目录。其 ROS package 名为 `lightning_localization`。本次剥离保持默认 NDT-OMP 行为，未引入阶段二工业级匹配后端重构。
 
 ## 已创建包
 
@@ -87,4 +87,3 @@
 ## 完成标准
 
 阶段一的源码迁移、构建文件重组、文档、静态审计和人工验证流程已完成。运行时验收必须在真实 ROS2 环境中按照 `docs/manual-ros2-validation.md` 确认。
-

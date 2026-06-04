@@ -31,9 +31,12 @@ REQUIRED = [
     "docs/architecture.md",
     "docs/io-spec.md",
     "docs/config-parameters.md",
+    "docs/ros2-topic-publication-audit.md",
+    "docs/ros2-output-topics.md",
     "docs/manual-ros2-validation.md",
     "docs/stage-one-acceptance-checklist.md",
     "docs/stage-one-static-audit-report.md",
+    "docs/stage-one-topic-output-enhancement-report.md",
     "docs/stage-one-final-report.md",
 ]
 
@@ -49,6 +52,36 @@ FORBIDDEN_RUNTIME_PATTERNS = [
 ]
 
 SOURCE_NOTE_MARKERS = ["TODO"]
+
+REQUIRED_PATTERNS = {
+    "package.xml": ["builtin_interfaces", "diagnostic_msgs", "nav_msgs", "geometry_msgs", "std_msgs"],
+    "cmake/packages.cmake": [
+        "find_package(builtin_interfaces REQUIRED)",
+        "find_package(diagnostic_msgs REQUIRED)",
+        "find_package(nav_msgs REQUIRED)",
+    ],
+    "src/CMakeLists.txt": ['"builtin_interfaces"', '"diagnostic_msgs"', '"nav_msgs"'],
+    "src/core/system/loc_system.h": [
+        "rclcpp::Publisher<geometry_msgs::msg::PoseStamped>",
+        "rclcpp::Publisher<std_msgs::msg::String>",
+        "rclcpp::Publisher<diagnostic_msgs::msg::DiagnosticArray>",
+        "rclcpp::Publisher<nav_msgs::msg::Odometry>",
+    ],
+    "src/core/system/loc_system.cc": [
+        "create_publisher<geometry_msgs::msg::PoseStamped>",
+        "create_publisher<std_msgs::msg::String>",
+        "create_publisher<diagnostic_msgs::msg::DiagnosticArray>",
+        "create_publisher<nav_msgs::msg::Odometry>",
+        "PublishLocalizationTopics",
+    ],
+    "config/default.yaml": [
+        "ros_output:",
+        "publish_pose:",
+        "publish_status:",
+        "publish_diagnostics:",
+        "publish_odometry:",
+    ],
+}
 
 
 def read_text(path: Path) -> str:
@@ -77,6 +110,15 @@ def main() -> int:
         for pattern in FORBIDDEN_RUNTIME_PATTERNS:
             if pattern in text:
                 failures.append(f"forbidden runtime pattern in {path.relative_to(ROOT)}: {pattern}")
+
+    for rel, patterns in REQUIRED_PATTERNS.items():
+        path = ROOT / rel
+        if not path.exists():
+            continue
+        text = read_text(path)
+        for pattern in patterns:
+            if pattern not in text:
+                failures.append(f"missing required pattern in {rel}: {pattern}")
 
     for path in ROOT.rglob("*"):
         if path.is_file() and path.suffix in {".cc", ".h", ".hpp", ".md"}:

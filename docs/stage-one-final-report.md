@@ -2,7 +2,7 @@
 
 ## Result
 
-Stage one uses `lightning_localization_v1/` as the standalone ROS2 package directory for the original lightning-lm localization runtime. Its ROS package name is `lightning_localization`. The extraction keeps the default NDT-OMP behavior and does not introduce stage-two industrial matching backend refactors.
+Stage one uses `lightning_localization/` as the standalone ROS2 package directory for the original lightning-lm localization runtime. Its ROS package name is `lightning_localization`. The extraction keeps the default NDT-OMP behavior and does not introduce stage-two industrial matching backend refactors.
 
 ## Created Package
 

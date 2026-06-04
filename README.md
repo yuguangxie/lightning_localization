@@ -1,4 +1,4 @@
-# lightning_localization
+﻿# lightning_localization
 
 `lightning_localization` is a standalone ROS2 package extracted from the `lightning-lm` localization runtime. It keeps the stage-one goal focused on behavior-preserving extraction: online localization, offline rosbag localization, LIO prediction, NDT-OMP scan-to-map matching, tiled maps, PGO smoothing, TF output, YAML configuration, Pangolin UI hooks, and Livox custom messages.
 
@@ -21,6 +21,10 @@ Included localization chain:
 - `PGO` and high-frequency extrapolation
 - `LocalizationResult`
 - `map -> base_link` TF output
+- `/localization/pose` pose topic
+- `/localization/status` status topic
+- `/localization/diagnostics` diagnostics topic
+- optional `/localization/odometry` odometry topic, disabled by default
 - Pangolin UI code paths used by localization
 - `RosbagIO` for offline replay
 - Livox `CustomMsg` and `CustomPoint` interfaces through the bundled `livox_ros_driver2` message subpackage
@@ -65,11 +69,26 @@ ros2 run lightning_localization run_loc_offline --config ./config/default.yaml -
 
 Launch wrappers are provided in `launch/loc_online.launch.py` and `launch/loc_offline.launch.py`.
 
+## ROS2 Outputs
+
+Online mode publishes the original `map -> base_link` TF when `system.pub_tf=true`. It also publishes standard ROS2 topics configured under `ros_output`:
+
+- `/localization/pose` as `geometry_msgs/msg/PoseStamped`
+- `/localization/status` as `std_msgs/msg/String`
+- `/localization/diagnostics` as `diagnostic_msgs/msg/DiagnosticArray`
+- `/localization/odometry` as `nav_msgs/msg/Odometry` when explicitly enabled
+
+Pose is enabled by default for valid localization results. Status and diagnostics are enabled by default for every localization result so initializing, degraded, failed, or invalid states remain visible. Odometry is disabled by default because twist is not estimated and covariance is a static config placeholder. See `docs/ros2-output-topics.md`.
+
+Offline mode constructs `loc::Localization` directly and does not spin the `LocSystem` publisher node, so the new ROS2 topic outputs apply to online mode unless the offline entry is refactored in a later validated ROS2 environment.
+
 ## Documentation
 
 - `docs/architecture.md`
 - `docs/io-spec.md`
 - `docs/config-parameters.md`
+- `docs/ros2-topic-publication-audit.md`
+- `docs/ros2-output-topics.md`
 - `docs/input-output-spec.md`
 - `docs/configuration-parameters.md`
 - `docs/localization-dependency-graph.md`
@@ -77,6 +96,7 @@ Launch wrappers are provided in `launch/loc_online.launch.py` and `launch/loc_of
 - `docs/manual-ros2-validation.md`
 - `docs/stage-one-acceptance-checklist.md`
 - `docs/stage-one-static-audit-report.md`
+- `docs/stage-one-topic-output-enhancement-report.md`
 - `docs/risk-register.md`
 - `docs/stage-one-final-report.md`
 
@@ -89,3 +109,4 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\static_check.ps1
 ```
 
 The Python version, `scripts/static_check.py`, is also provided for Linux or Python-enabled environments.
+
