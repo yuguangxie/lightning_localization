@@ -1,5 +1,6 @@
 #include <pcl/common/transforms.h>
 #include <yaml-cpp/yaml.h>
+#include <filesystem>
 #include <fstream>
 
 #include "common/options.h"
@@ -83,6 +84,16 @@ bool LaserMapping::LoadParamsFromYAML(const std::string &yaml_file) {
         bool use_imu_filter = yaml["fasterlio"]["imu_filter"].as<bool>();
         p_imu_->SetUseIMUFilter(use_imu_filter);
         options_.proj_kfs_ = yaml["fasterlio"]["proj_kfs"].as<bool>();
+
+        if (yaml["debug_dump"]) {
+            const auto debug_dump = yaml["debug_dump"];
+            if (debug_dump["enable_lio_map_dump"]) {
+                options_.dump_lio_map_ = debug_dump["enable_lio_map_dump"].as<bool>();
+            }
+            if (debug_dump["lio_map_path"]) {
+                options_.lio_map_dump_path_ = debug_dump["lio_map_path"].as<std::string>();
+            }
+        }
 
     } catch (...) {
         LOG(ERROR) << "bad conversion";
@@ -851,12 +862,26 @@ CloudPtr LaserMapping::GetGlobalMap(bool use_lio_pose, bool use_voxel, float res
 }
 
 void LaserMapping::SaveMap() {
+    if (!options_.dump_lio_map_) {
+        LOG(INFO) << "lio map debug dump is disabled";
+        return;
+    }
+
     /// 保存地图
     auto global_map = GetGlobalMap(true);
 
-    pcl::io::savePCDFileBinaryCompressed("./data/lio.pcd", *global_map);
+    const std::filesystem::path dump_path(options_.lio_map_dump_path_);
+    if (dump_path.has_parent_path()) {
+        std::error_code ec;
+        std::filesystem::create_directories(dump_path.parent_path(), ec);
+        if (ec) {
+            LOG(WARNING) << "failed to create lio map dump directory: " << ec.message();
+            return;
+        }
+    }
+    pcl::io::savePCDFileBinaryCompressed(options_.lio_map_dump_path_, *global_map);
 
-    LOG(INFO) << "lio map is saved to ./data/lio.pcd";
+    LOG(INFO) << "lio map is saved to " << options_.lio_map_dump_path_;
 }
 
 CloudPtr LaserMapping::GetRecentCloud() {

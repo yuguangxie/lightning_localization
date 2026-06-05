@@ -1,4 +1,4 @@
-# 输入输出规范
+﻿# 输入输出规范
 
 ## 在线输入
 
@@ -55,13 +55,13 @@ map.pgm             可选 2D 展示地图
 
 ## 文件输出
 
-继承运行时可能写入：
+运行时可能写入：
 
 | 路径 | 触发条件 |
 |---|---|
-| `./data/recover_pose.txt` | 最近恢复的定位位姿 |
-| `./data/tgt.pcd` | 继承的 NDT target 调试 dump |
+| `./data/recover_pose.txt` | 最新恢复定位位姿 |
+| `debug_dump.lidar_loc_target_path` | 仅在 `debug_dump.enable_lidar_loc_target_dump=true` 时写入 NDT target 调试 dump |
+| `debug_dump.lio_map_path` | 仅在 `debug_dump.enable_lio_map_dump=true` 时写入 LIO global map 调试 dump |
 | `[map_path]/*_dyn.pcd` | 启用时保存动态地图层 |
 
-调试 target dump 是继承行为，阶段一保持不变。
-
+调试 PCD 写盘默认关闭，以避免定位运行中的高频磁盘 IO。动态地图层保存与 debug dump 分离，仍由 `maps.*` 配置控制。

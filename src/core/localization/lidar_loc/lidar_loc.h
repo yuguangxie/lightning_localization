@@ -63,6 +63,9 @@ class LidarLoc {
 
         double max_update_cache_dis_ = 30.0;  // 更新动态图层的缓冲距离
         std::string recover_pose_path_ = "./data/recover_pose.txt";
+
+        bool dump_ndt_target_ = false;
+        std::string ndt_target_dump_path_ = "./data/tgt.pcd";
     };
 
     explicit LidarLoc(Options options = Options());

@@ -47,6 +47,9 @@ class LaserMapping {
 
         bool proj_kfs_ = false;
         int max_proj_kfs_ = 5;
+
+        bool dump_lio_map_ = false;
+        std::string lio_map_dump_path_ = "./data/lio.pcd";
     };
 
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW

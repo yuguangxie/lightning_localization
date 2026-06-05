@@ -84,6 +84,11 @@ ros_output:
   odometry_position_covariance: [1.0, 1.0, 1.0]
   odometry_orientation_covariance: [0.5, 0.5, 0.5]
 
+debug_dump:
+  enable_lidar_loc_target_dump: false
+  lidar_loc_target_path: "./data/tgt.pcd"
+  enable_lio_map_dump: false
+  lio_map_path: "./data/lio.pcd"
 loop_closing:
   loop_kf_gap: 20       # 每隔多少个关键帧检查一次
   min_id_interval: 20   # 被检查的关键帧ID间隔

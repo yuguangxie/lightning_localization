@@ -1,11 +1,13 @@
 #include <algorithm>
 #include <execution>
+#include <filesystem>
 
 #include <pcl/common/transforms.h>
 #include <pcl/filters/passthrough.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/pcl_base.h>
 #include <pcl/registration/ndt.h>
+#include <yaml-cpp/yaml.h>
 
 #include "pclomp/ndt_omp_impl.hpp"
 #include "pclomp/voxel_grid_covariance_omp_impl.hpp"
@@ -78,6 +80,17 @@ bool LidarLoc::Init(const std::string& config_path) {
     options_.enable_icp_adjust_ = yaml.GetValue<bool>("lidar_loc", "enable_icp_adjust");
     options_.with_height_ = yaml.GetValue<bool>("loop_closing", "with_height");
     options_.try_self_extrap_ = yaml.GetValue<bool>("lidar_loc", "try_self_extrap");
+
+    auto yaml_root = YAML::LoadFile(config_path);
+    if (yaml_root["debug_dump"]) {
+        const auto debug_dump = yaml_root["debug_dump"];
+        if (debug_dump["enable_lidar_loc_target_dump"]) {
+            options_.dump_ndt_target_ = debug_dump["enable_lidar_loc_target_dump"].as<bool>();
+        }
+        if (debug_dump["lidar_loc_target_path"]) {
+            options_.ndt_target_dump_path_ = debug_dump["lidar_loc_target_path"].as<std::string>();
+        }
+    }
 
     lidar_loc::grid_search_angle_step = yaml.GetValue<double>("lidar_loc", "grid_search_angle_step");
     lidar_loc::grid_search_angle_range = yaml.GetValue<double>("lidar_loc", "grid_search_angle_range");
@@ -846,8 +859,20 @@ bool LidarLoc::Localize(SE3& pose, double& confidence, CloudPtr input, CloudPtr 
     confidence = ndt->getTransformationProbability();
 
     auto tgt = ndt->getInputTarget();
-    if (!tgt->empty()) {
-        pcl::io::savePCDFile("./data/tgt.pcd", *tgt);
+    if (options_.dump_ndt_target_ && !tgt->empty()) {
+        bool can_dump = true;
+        const std::filesystem::path dump_path(options_.ndt_target_dump_path_);
+        if (dump_path.has_parent_path()) {
+            std::error_code ec;
+            std::filesystem::create_directories(dump_path.parent_path(), ec);
+            if (ec) {
+                LOG(WARNING) << "failed to create lidar loc target dump directory: " << ec.message();
+                can_dump = false;
+            }
+        }
+        if (can_dump) {
+            pcl::io::savePCDFile(options_.ndt_target_dump_path_, *tgt);
+        }
     }
 
     if (loc_inited_ == false && confidence > options_.min_init_confidence_) {

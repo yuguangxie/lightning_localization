@@ -44,6 +44,17 @@ This package preserves the upstream `config/default*.yaml` files and their key n
 
 `system.pub_tf` remains the original TF switch and is separate from `ros_output`. Odometry covariance is not a real estimator output in stage one.
 
+## Debug Dump
+
+Debug PCD dump is disabled by default so normal localization does not write high-frequency debug point clouds.
+
+| Key | Purpose |
+|---|---|
+| `debug_dump.enable_lidar_loc_target_dump` | Enable NDT target PCD dump from `LidarLoc::Localize`; default is false |
+| `debug_dump.lidar_loc_target_path` | Output path used when lidar localization target dump is enabled |
+| `debug_dump.enable_lio_map_dump` | Enable LIO global map debug dump from `LaserMapping::SaveMap`; default is false |
+| `debug_dump.lio_map_path` | Output path used when LIO map dump is enabled |
+
 ## Lidar Localization
 
 | Key | Purpose |

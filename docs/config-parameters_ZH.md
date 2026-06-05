@@ -21,6 +21,17 @@
 | `common.lidar_topic` | 标准点云 topic |
 | `common.livox_lidar_topic` | Livox 自定义点云 topic |
 
+## Debug Dump
+
+调试 PCD 写盘默认关闭，普通定位运行不会写高频调试点云。
+
+| Key | 用途 |
+|---|---|
+| `debug_dump.enable_lidar_loc_target_dump` | 启用 `LidarLoc::Localize` 的 NDT target PCD dump，默认 false |
+| `debug_dump.lidar_loc_target_path` | 启用 lidar localization target dump 时的输出路径 |
+| `debug_dump.enable_lio_map_dump` | 启用 `LaserMapping::SaveMap` 的 LIO 全局地图调试 dump，默认 false |
+| `debug_dump.lio_map_path` | 启用 LIO map dump 时的输出路径 |
+
 ## Lidar Localization
 
 | Key | 用途 |
@@ -58,4 +69,3 @@
 ## 静态审计说明
 
 `lidar_loc` 会读取继承配置 key `loop_closing.with_height`。回环运行时没有编译进这个独立定位包。
-

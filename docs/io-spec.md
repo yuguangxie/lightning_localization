@@ -60,8 +60,8 @@ The inherited runtime can write:
 | Path | Trigger |
 |---|---|
 | `./data/recover_pose.txt` | latest recovered localization pose |
-| `./data/tgt.pcd` | inherited NDT target debug dump |
+| `debug_dump.lidar_loc_target_path` | NDT target debug dump only when `debug_dump.enable_lidar_loc_target_dump=true` |
+| `debug_dump.lio_map_path` | LIO global map debug dump only when `debug_dump.enable_lio_map_dump=true` |
 | `[map_path]/*_dyn.pcd` | dynamic map layer save when enabled |
 
-The debug target dump is an inherited behavior and remains unchanged in stage one.
-
+Debug PCD dump is disabled by default to avoid high-frequency localization disk IO. Dynamic map layer persistence is separate from debug dump and remains controlled by `maps.*` options.
