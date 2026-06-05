@@ -25,6 +25,8 @@ Search terms reviewed: `create_publisher`, `publish(`, `TransformBroadcaster`, `
 | `/localization/status` | ROS2 topic | `std_msgs/msg/String` | Added | `LocSystem::PublishLocalizationTopics()` | Every localization result, throttled by `ros_output.status_min_period_sec` | `ros_output.publish_status`, `ros_output.status_topic` | Includes status enum name, valid flags, confidence, timestamp, and health text. |
 | `/localization/diagnostics` | ROS2 topic | `diagnostic_msgs/msg/DiagnosticArray` | Added | `LocSystem::PublishLocalizationTopics()` | Every localization result, throttled by `ros_output.diagnostics_min_period_sec` | `ros_output.publish_diagnostics`, `ros_output.diagnostics_topic` | Includes one `DiagnosticStatus` named `lightning_localization/localization`. |
 | `/localization/odometry` | ROS2 topic | `nav_msgs/msg/Odometry` | Added, default off | `LocSystem::PublishLocalizationTopics()` | Every accepted localization result when enabled | `ros_output.publish_odometry`, `ros_output.odometry_topic` | Pose mirrors localization pose. Twist is not estimated. Pose covariance comes from static config placeholders. |
+| `/localization/initialization_status` | ROS2 topic | `std_msgs/msg/String` | Added after RViz2/initialization enhancement | `LocSystem::PublishInitializationStatus()` | Startup initialization, service/RViz initial pose requests, and localization result throttling | `initialization.status.publish_initialization_status`, `initialization.status.topic` | Reports initialization source, recent request frame, accepted/applied flags, waiting state, and last message. |
+| `/initialpose` | ROS2 input topic | `geometry_msgs/msg/PoseWithCovarianceStamped` | Added after RViz2/initialization enhancement | `LocSystem::CreateInitializationInterfaces()` | RViz2 `2D Pose Estimate` or manual topic publish | `initialization.rviz_initialpose.enabled`, `initialization.rviz_initialpose.topic` | Input topic, not an output; accepted pose is applied only as initial guess. |
 | `map -> base_link` | TF broadcast | `geometry_msgs/msg/TransformStamped` | Preserved | Existing TF callback and `sendTransform` path | Valid localization result | `system.pub_tf` | New topic publishing is separate from TF broadcasting. |
 
 ## Boundaries
@@ -32,5 +34,6 @@ Search terms reviewed: `create_publisher`, `publish(`, `TransformBroadcaster`, `
 - No scan/map point cloud topic was added in this stage-one enhancement.
 - Offline `run_loc_offline` still does not publish ROS2 topics because it does not construct `LocSystem` or spin a publisher node.
 - No custom message was added; this keeps the build surface smaller and uses ROS2 standard messages.
+- `SetInitialPose.srv` was added later for external initialization input; it does not change localization result message semantics.
 - ROS2 build and runtime behavior are pending manual validation in Ubuntu/ROS2/colcon.
 

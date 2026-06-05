@@ -66,6 +66,7 @@ With sensors or bag replay active, check:
 - `/localization/pose` publishes valid `geometry_msgs/msg/PoseStamped` messages
 - `/localization/status` publishes readable status strings containing `GOOD`, `INITIALIZING`, `FOLLOWING_DR`, `FAIL`, or `IDLE`
 - `/localization/diagnostics` publishes `diagnostic_msgs/msg/DiagnosticArray` with `lightning_localization/localization`
+- `/localization/initialization_status` publishes the configured startup initialization source and recent request state
 - Pangolin UI starts when `system.with_ui=true`
 
 ## RViz And TF
@@ -75,10 +76,11 @@ ros2 run tf2_ros tf2_echo map base_link
 ros2 topic echo /localization/pose
 ros2 topic echo /localization/status
 ros2 topic echo /localization/diagnostics
+ros2 topic echo /localization/initialization_status
 ros2 topic hz /localization/pose
 ros2 topic hz /localization/status
 ros2 topic hz /localization/diagnostics
-rviz2
+ros2 launch lightning_localization loc_online.launch.py config:=/path/to/default_nclt.yaml use_rviz:=true
 ```
 
 If `ros_output.publish_odometry=true`, also run:
@@ -95,7 +97,50 @@ Acceptance:
 - Pose topic uses the configured `map` frame.
 - Status and diagnostics reflect localization state changes.
 - Diagnostics level is `OK` for valid `GOOD`, `WARN` for initializing/degraded/invalid results, and `ERROR` for `FAIL`.
+- Initialization status distinguishes pose accepted/applied from real localization success.
 - Odometry, when enabled, uses `map` and `base_link`; covariance is recorded as static placeholder config and twist is not treated as an estimated velocity.
+
+## RViz Initial Pose And Service
+
+Check the standard RViz2 initial pose topic:
+
+```bash
+ros2 topic echo /initialpose
+```
+
+Publish an initial pose without RViz2:
+
+```bash
+ros2 topic pub --once /initialpose geometry_msgs/msg/PoseWithCovarianceStamped "{
+  header: {frame_id: 'map'},
+  pose: {
+    pose: {
+      position: {x: 0.0, y: 0.0, z: 0.0},
+      orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}
+    }
+  }
+}"
+```
+
+Call the external initial pose service:
+
+```bash
+ros2 service call /lightning_localization/set_initial_pose lightning_localization/srv/SetInitialPose "{
+  header: {frame_id: 'map'},
+  pose: {
+    position: {x: 0.0, y: 0.0, z: 0.0},
+    orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}
+  },
+  source: 'operator',
+  apply_immediately: true
+}"
+```
+
+Acceptance:
+
+- `/localization/initialization_status` updates `last_request_source`, `last_request_accepted`, `last_request_applied`, and `last_message`.
+- `/localization/diagnostics` includes initialization key-values.
+- Pose accepted/applied is not treated as localization success; later `GOOD` status requires sensor input, map loading, and successful matching.
 
 ## Trajectory And Metrics
 

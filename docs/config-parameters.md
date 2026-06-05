@@ -44,6 +44,43 @@ This package preserves the upstream `config/default*.yaml` files and their key n
 
 `system.pub_tf` remains the original TF switch and is separate from `ros_output`. Odometry covariance is not a real estimator output in stage one.
 
+## Visualization
+
+| Key | Purpose |
+|---|---|
+| `visualization.enable_rviz` | Operator-facing switch documented for launch/RViz workflows; RViz2 is started by launch, not by C++ |
+| `visualization.rviz_config` | Default RViz2 config path, `rviz/lightning_localization.rviz` |
+| `visualization.fixed_frame` | RViz2 fixed frame, default `map` |
+| `visualization.base_frame` | Base frame shown by TF/Pose workflows, default `base_link` |
+| `visualization.show_pose_topic` | Documents that pose display should be shown by default |
+| `visualization.show_odometry_topic` | Documents odometry display default; odometry publisher remains controlled by `ros_output.publish_odometry` |
+| `visualization.show_tf` | Documents TF display default |
+| `visualization.show_scan_topic` | Documents scan display intent; current package does not publish scan topic |
+| `visualization.show_map_topic` | Documents map display intent; current package does not publish map cloud topic |
+
+## Initialization
+
+| Key | Purpose |
+|---|---|
+| `initialization.source` | Startup source: `default`, `external_pose`, `rviz_initialpose`, or `functional_point` |
+| `initialization.default_pose.enabled` | Enable default startup pose |
+| `initialization.default_pose.pose` | Startup pose `[x, y, z, qx, qy, qz, qw]`; default identity pose preserves stage-one behavior |
+| `initialization.external_pose.enabled` | Create set initial pose service |
+| `initialization.external_pose.service_name` | Service name, default `/lightning_localization/set_initial_pose` |
+| `initialization.external_pose.accept_frame_id` | Required service request frame, default `map` |
+| `initialization.external_pose.require_valid_quaternion` | Reject non-unit quaternion when true |
+| `initialization.external_pose.apply_immediately` | Allow immediate service pose application |
+| `initialization.rviz_initialpose.enabled` | Subscribe to RViz2 `/initialpose` |
+| `initialization.rviz_initialpose.topic` | RViz2 initial pose topic, default `/initialpose` |
+| `initialization.rviz_initialpose.accept_frame_id` | Required RViz message frame, default `map` |
+| `initialization.rviz_initialpose.require_valid_quaternion` | Reject non-unit quaternion when true |
+| `initialization.rviz_initialpose.apply_immediately` | Apply RViz pose immediately when true |
+| `initialization.rviz_initialpose.preserve_default_behavior` | With source `rviz_initialpose`, still apply default pose first when true |
+| `initialization.status.publish_initialization_status` | Publish initialization status topic |
+| `initialization.status.topic` | Initialization status topic, default `/localization/initialization_status` |
+
+Initial pose injection only applies an initial guess. It does not mean localization has succeeded; use localization status, diagnostics, TF, and pose output after sensor/map input to judge success.
+
 ## Debug Dump
 
 Debug PCD dump is disabled by default so normal localization does not write high-frequency debug point clouds.

@@ -84,6 +84,39 @@ ros_output:
   odometry_position_covariance: [1.0, 1.0, 1.0]
   odometry_orientation_covariance: [0.5, 0.5, 0.5]
 
+visualization:
+  enable_rviz: false
+  rviz_config: "rviz/lightning_localization.rviz"
+  fixed_frame: "map"
+  base_frame: "base_link"
+  show_pose_topic: true
+  show_odometry_topic: false
+  show_tf: true
+  show_scan_topic: false
+  show_map_topic: false
+
+initialization:
+  source: "default"        # default | external_pose | rviz_initialpose | functional_point
+  default_pose:
+    enabled: true
+    pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+  external_pose:
+    enabled: true
+    service_name: "/lightning_localization/set_initial_pose"
+    accept_frame_id: "map"
+    require_valid_quaternion: true
+    apply_immediately: true
+  rviz_initialpose:
+    enabled: true
+    topic: "/initialpose"
+    accept_frame_id: "map"
+    require_valid_quaternion: true
+    apply_immediately: true
+    preserve_default_behavior: true
+  status:
+    publish_initialization_status: true
+    topic: "/localization/initialization_status"
+
 debug_dump:
   enable_lidar_loc_target_dump: false
   lidar_loc_target_path: "./data/tgt.pcd"

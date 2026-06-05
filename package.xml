@@ -27,6 +27,7 @@
   <depend>message_filters</depend>
   <depend>visualization_msgs</depend>
   <depend>rosbag2_cpp</depend>
+  <exec_depend>rviz2</exec_depend>
 
   <member_of_group>rosidl_interface_packages</member_of_group>
 

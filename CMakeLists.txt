@@ -25,6 +25,7 @@ include(cmake/packages.cmake)
 rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/LocCmd.srv"
   "srv/SaveMap.srv"
+  "srv/SetInitialPose.srv"
   DEPENDENCIES std_msgs geometry_msgs sensor_msgs nav_msgs
 )
 
@@ -32,11 +33,13 @@ include_directories(
   ${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_cpp
 )
 
-install(DIRECTORY config launch docs scripts
+install(DIRECTORY config launch docs scripts rviz
   DESTINATION share/${PROJECT_NAME}
 )
 
 add_subdirectory(thirdparty/livox_ros_driver)
 add_subdirectory(src)
+
+ament_export_dependencies(rosidl_default_runtime)
 
 ament_package()
