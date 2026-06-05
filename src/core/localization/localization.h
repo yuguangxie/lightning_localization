@@ -8,6 +8,9 @@
 #include "core/localization/localization_result.h"
 #include "core/system/async_message_process.h"
 
+#include <functional>
+#include <utility>
+
 /// 预声明
 namespace lightning {
 namespace ui {
@@ -78,9 +81,13 @@ class Localization {
     using LocStateCallback = std::function<void(const std_msgs::msg::Int32& state)>;
     using PointcloudBodyCallback = std::function<void(const sensor_msgs::msg::PointCloud2& pointcloud)>;
     using PointcloudWorldCallback = std::function<void(const sensor_msgs::msg::PointCloud2& pointcloud)>;
+    using ScanCloudCallback = std::function<void(CloudPtr cloud, const SE3& pose, double timestamp)>;
+    using MapCloudCallback = std::function<void(CloudPtr cloud)>;
 
     void SetTFCallback(TFCallback&& callback);
     void SetResultCallback(ResultCallback&& callback);
+    void SetScanCloudCallback(ScanCloudCallback&& callback);
+    void SetMapCloudCallback(MapCloudCallback&& callback);
 
     // void SetPathCallback(std::function<void(const nav_msgs::msg::Path& path)>&& callback);
     // void SetPointcloudWorldCallback(std::function<void(const sensor_msgs::msg::PointCloud2& pointcloud)>&& callback);
@@ -122,6 +129,8 @@ class Localization {
     LocStateCallback loc_state_callback_;
     PointcloudBodyCallback pointcloud_body_callback_;
     PointcloudWorldCallback pointcloud_world_callback_;
+    ScanCloudCallback scan_cloud_callback_;
+    MapCloudCallback map_cloud_callback_;
 
     /// 输入检查
     double last_imu_time_ = 0;

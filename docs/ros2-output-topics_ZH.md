@@ -10,6 +10,8 @@
 | `/localization/status` | `std_msgs/msg/String` | 开启 | 每个定位结果，受 `status_min_period_sec` 节流 |
 | `/localization/diagnostics` | `diagnostic_msgs/msg/DiagnosticArray` | 开启 | 每个定位结果，受 `diagnostics_min_period_sec` 节流 |
 | `/localization/odometry` | `nav_msgs/msg/Odometry` | 关闭 | 启用后每个被接受的定位结果 |
+| `/localization/scan` | `sensor_msgs/msg/PointCloud2` | 开启 | 当前 scan 按定位 pose 变换到 `ros_output.map_frame` 后发布，受 `scan_min_period_sec` 节流 |
+| `/localization/map` | `sensor_msgs/msg/PointCloud2` | 开启 | tiled runtime map chunk 更新后发布当前已加载局部地图，受 `map_min_period_sec` 节流 |
 
 对于 pose 和 odometry，被接受默认表示 `LocalizationResult.valid_ == true`。只有下游确实需要 invalid 位姿类消息时，才建议设置 `ros_output.publish_invalid_result: true`。status 和 diagnostics 仍会报告 invalid 或初始化阶段结果，以便操作者观察失败状态。
 
@@ -72,6 +74,17 @@ KeyValue 包含 `status`、`valid`、`lidar_loc_valid`、`confidence`、`lidar_l
 | `twist` | 保持默认 0，本轮不估计速度 |
 
 Odometry 默认关闭，因为阶段一没有给全局定位结果提供已验证的协方差或 twist 估计。启用后，下游必须把 covariance 理解为 `static_config_placeholder`。
+
+## PointCloud2 可视化输出
+
+`/localization/scan` 发布当前 LiDAR scan 的可视化点云。该点云不是原始传感器 topic，而是在 `LidarLoc` 产生有效定位结果后，使用当前定位 pose 变换到 `ros_output.map_frame`，默认 `map`。
+
+`/localization/map` 发布当前已加载的局部 tiled runtime map。该 topic 在地图 chunk 重新加载或更新 NDT target 后发布，使用 reliable transient-local QoS，便于 RViz2 display 在稍后订阅时仍能收到最近一次局部地图。
+
+| Topic | Frame | 配置 |
+|---|---|---|
+| `/localization/scan` | `ros_output.map_frame` | `ros_output.publish_scan`、`ros_output.scan_topic`、`ros_output.scan_min_period_sec` |
+| `/localization/map` | `ros_output.map_frame` | `ros_output.publish_map`、`ros_output.map_topic`、`ros_output.map_min_period_sec` |
 
 ## YAML 配置
 

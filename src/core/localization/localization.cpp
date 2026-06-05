@@ -4,6 +4,8 @@
 #include "core/localization/lidar_loc/lidar_loc.h"
 #include "core/localization/localization.h"
 
+#include <utility>
+
 #include <opencv2/highgui.hpp>
 
 #include "core/localization/pose_graph/pgo.h"
@@ -43,6 +45,11 @@ bool Localization::Init(const std::string& yaml_path, const std::string& global_
     lidar_loc_options.map_option_.enable_dynamic_polygon_ = false;
     lidar_loc_options.map_option_.map_path_ = global_map_path;
     lidar_loc_ = std::make_shared<LidarLoc>(lidar_loc_options);
+    lidar_loc_->SetMapCloudCallback([this](CloudPtr cloud) {
+        if (map_cloud_callback_) {
+            map_cloud_callback_(cloud);
+        }
+    });
 
     if (options_.with_ui_) {
         ui_ = std::make_shared<ui::PangolinWindow>();
@@ -241,6 +248,10 @@ void Localization::LidarLocProcCloud(CloudPtr scan_undist) {
     auto res = lidar_loc_->GetLocalizationResult();
     pgo_->ProcessLidarLoc(res);
 
+    if (scan_cloud_callback_ && res.valid_) {
+        scan_cloud_callback_(scan_undist, res.pose_, res.timestamp_);
+    }
+
     if (ui_) {
         // Twi with Til, here pose means Twl, thus Til=I
         ui_->UpdateScan(scan_undist, res.pose_);
@@ -353,5 +364,13 @@ void Localization::SetExternalPose(const Eigen::Quaterniond& q, const Eigen::Vec
 void Localization::SetTFCallback(Localization::TFCallback&& callback) { tf_callback_ = callback; }
 
 void Localization::SetResultCallback(Localization::ResultCallback&& callback) { result_callback_ = callback; }
+
+void Localization::SetScanCloudCallback(Localization::ScanCloudCallback&& callback) {
+    scan_cloud_callback_ = std::move(callback);
+}
+
+void Localization::SetMapCloudCallback(Localization::MapCloudCallback&& callback) {
+    map_cloud_callback_ = std::move(callback);
+}
 
 }  // namespace lightning::loc

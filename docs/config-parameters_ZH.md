@@ -66,6 +66,19 @@
 | `roi.height_min` | 保留点的最小 z |
 | `roi.height_max` | 保留点的最大 z |
 
+## ROS2 点云可视化输出
+
+| Key | 用途 |
+|---|---|
+| `ros_output.publish_scan` | 发布当前定位后的实时扫描点云，消息类型为 `sensor_msgs/msg/PointCloud2`，默认开启 |
+| `ros_output.scan_topic` | 当前扫描点云 topic，默认 `/localization/scan` |
+| `ros_output.publish_map` | 发布当前已加载的局部 runtime map 点云，消息类型为 `sensor_msgs/msg/PointCloud2`，默认开启 |
+| `ros_output.map_topic` | 局部地图点云 topic，默认 `/localization/map` |
+| `ros_output.scan_min_period_sec` | scan topic 最小发布周期 |
+| `ros_output.map_min_period_sec` | map topic 最小发布周期 |
+| `visualization.show_scan_topic` | RViz2 默认显示 `/localization/scan` |
+| `visualization.show_map_topic` | RViz2 默认显示 `/localization/map` |
+
 ## 静态审计说明
 
 `lidar_loc` 会读取继承配置 key `loop_closing.with_height`。回环运行时没有编译进这个独立定位包。

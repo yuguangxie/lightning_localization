@@ -11,7 +11,8 @@
 | odometry topic | ROS2 topic | 增强前无 | 否 | 增强前不存在 | 不适用 | 不适用 | `bag_io` 中有 `nav_msgs/msg/Odometry` 序列化成员，但没有定位 odometry publisher。 |
 | status topic | ROS2 topic | 增强前无 | 否 | 增强前不存在 | 不适用 | 不适用 | `Localization` 内部有 `LocStateCallback` 类型，但 `LocSystem` 未注册为 ROS topic。 |
 | diagnostics topic | ROS2 topic | 增强前无 | 否 | 增强前不存在 | 不适用 | 不适用 | 增强前没有 `diagnostic_msgs` 依赖和 diagnostics publisher。 |
-| 当前 scan/map topic | ROS2 topic | 增强前无 | 否 | `LocSystem` 中不存在；Pangolin UI 通过进程内回调更新 scan | 不适用 | `system.with_ui` 只影响 Pangolin UI | 本轮不新增 scan/map ROS topic。 |
+| `/localization/scan` | ROS2 topic | `sensor_msgs/msg/PointCloud2` | RViz2 可视化增强后新增 | `LocSystem::PublishScanCloud()`，经 `Localization::SetScanCloudCallback()` 回调 | LidarLoc 产生有效定位结果后；受 `ros_output.scan_min_period_sec` 节流 | `ros_output.publish_scan`、`ros_output.scan_topic` | 当前 scan 按定位 pose 变换到 `ros_output.map_frame`，用于 RViz2 显示。 |
+| `/localization/map` | ROS2 topic | `sensor_msgs/msg/PointCloud2` | RViz2 可视化增强后新增 | `LocSystem::PublishMapCloud()`，经 `LidarLoc::UpdateMapThread()` 地图回调 | tiled map chunk 更新后；受 `ros_output.map_min_period_sec` 节流 | `ros_output.publish_map`、`ros_output.map_topic` | 当前已加载的局部 runtime map，不等同于完整全局地图。 |
 | 离线运行输出 topic | ROS2 topic | 增强前无 | 否 | `src/app/run_loc_offline.cc` 直接构造 `loc::Localization`，不使用 `LocSystem` | 不适用 | 不适用 | 离线模式仍为进程内回放，不 spin publisher node。 |
 | 结果到 ROS helper | helper | `geometry_msgs/msg/TransformStamped` | 是 | `src/core/localization/localization_result.cc` | TF callback 在结果有效时调用 | 不可配置 | 现有 helper 只转换 TF transform，不转换 `PoseStamped`、`Odometry`、status 或 diagnostics。 |
 

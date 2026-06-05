@@ -10,6 +10,8 @@ This document describes ROS2 outputs added to the stage-one `lightning_localizat
 | `/localization/status` | `std_msgs/msg/String` | Enabled | Every localization result, throttled by `status_min_period_sec` |
 | `/localization/diagnostics` | `diagnostic_msgs/msg/DiagnosticArray` | Enabled | Every localization result, throttled by `diagnostics_min_period_sec` |
 | `/localization/odometry` | `nav_msgs/msg/Odometry` | Disabled | Every accepted localization result when enabled |
+| `/localization/scan` | `sensor_msgs/msg/PointCloud2` | Enabled | Current undistorted scan transformed into `ros_output.map_frame`, throttled by `scan_min_period_sec` |
+| `/localization/map` | `sensor_msgs/msg/PointCloud2` | Enabled | Loaded local runtime map after tiled map chunk updates, throttled by `map_min_period_sec` |
 | `/localization/initialization_status` | `std_msgs/msg/String` | Enabled | Startup initialization, service/RViz requests, and localization result throttling |
 
 For pose and odometry, accepted means `LocalizationResult.valid_ == true` by default. Set `ros_output.publish_invalid_result: true` only when downstream tools need invalid pose-like messages. Status and diagnostics still report invalid or initializing results so operators can see failure state.
@@ -75,6 +77,17 @@ The `note` field states that `confidence` is inherited from NDT transformation p
 | `twist` | Left at default zero because this enhancement does not estimate velocity |
 
 Odometry is disabled by default because this stage-one package does not provide a validated covariance or twist estimate for the published global localization result. If enabled, downstream consumers must treat covariance as `static_config_placeholder`, not a real estimator output.
+
+## Point Clouds
+
+`/localization/scan` publishes `sensor_msgs/msg/PointCloud2` for the current LiDAR scan after the localization core has a valid localization result. The scan is transformed from the localization processing frame into `ros_output.map_frame`, default `map`, using the pose returned by `LidarLoc`. This is intended for RViz2 inspection and should not be treated as a raw sensor topic.
+
+`/localization/map` publishes `sensor_msgs/msg/PointCloud2` for the currently loaded local tiled runtime map. It is published when `LidarLoc` reloads map chunks through `TiledMap::LoadOnPose()` and the map update thread refreshes the NDT target. The map publisher uses reliable transient-local QoS so RViz2 can receive the latest local map even if the display subscribes after the first publication.
+
+| Topic | Frame | QoS intent | Config |
+|---|---|---|---|
+| `/localization/scan` | `ros_output.map_frame` | Sensor data QoS, high-frequency visualization | `ros_output.publish_scan`, `ros_output.scan_topic`, `ros_output.scan_min_period_sec` |
+| `/localization/map` | `ros_output.map_frame` | Reliable transient local, chunk-update visualization | `ros_output.publish_map`, `ros_output.map_topic`, `ros_output.map_min_period_sec` |
 
 ## Initialization Status
 

@@ -92,9 +92,11 @@ Online mode publishes the original `map -> base_link` TF when `system.pub_tf=tru
 - `/localization/status` as `std_msgs/msg/String`
 - `/localization/diagnostics` as `diagnostic_msgs/msg/DiagnosticArray`
 - `/localization/odometry` as `nav_msgs/msg/Odometry` when explicitly enabled
+- `/localization/scan` as `sensor_msgs/msg/PointCloud2` for the current scan transformed into the map frame
+- `/localization/map` as `sensor_msgs/msg/PointCloud2` for the currently loaded local tiled runtime map
 - `/localization/initialization_status` as `std_msgs/msg/String`
 
-Pose is enabled by default for valid localization results. Status and diagnostics are enabled by default for every localization result so initializing, degraded, failed, or invalid states remain visible. Odometry is disabled by default because twist is not estimated and covariance is a static config placeholder. See `docs/ros2-output-topics.md`.
+Pose, scan, map, status, and diagnostics are enabled by default for online visualization. Odometry is disabled by default because twist is not estimated and covariance is a static config placeholder. See `docs/ros2-output-topics.md`.
 
 Initial pose can be injected through:
 

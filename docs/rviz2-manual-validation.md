@@ -60,6 +60,8 @@ ros2 topic echo /localization/pose
 ros2 topic echo /localization/status
 ros2 topic echo /localization/diagnostics
 ros2 topic echo /localization/initialization_status
+ros2 topic echo /localization/scan
+ros2 topic echo /localization/map
 ros2 run tf2_ros tf2_echo map base_link
 ```
 
@@ -82,6 +84,8 @@ ros2 topic hz /localization/pose
 ros2 topic hz /localization/status
 ros2 topic hz /localization/diagnostics
 ros2 topic hz /localization/initialization_status
+ros2 topic hz /localization/scan
+ros2 topic hz /localization/map
 ```
 
 ## Service 调用验证
@@ -170,14 +174,17 @@ ros2 topic pub --once /initialpose geometry_msgs/msg/PoseWithCovarianceStamped "
 4. 确认 Global Options 的 Fixed Frame 是 `map`。
 5. 确认 TF display 已开启。
 6. 确认 Pose display 指向 `/localization/pose`。
-7. 如果启用 odometry，打开 Odometry display 并确认 topic 为 `/localization/odometry`。
-8. 如果后续发布 scan/map topic，打开 PointCloud2 display，并检查 size、style、color transformer、decay time 可调整。
-9. 点击 `2D Pose Estimate`。
-10. 在地图区域拖动设置 x/y/yaw。
-11. 检查 `/initialpose` 是否收到消息。
-12. 检查 `/localization/initialization_status` 是否更新。
-13. 检查 `/localization/diagnostics` 是否包含 initialization 字段。
-14. 回放 bag 或接入真实传感器后，观察 `/localization/status` 是否从 `INITIALIZING` 进入 `GOOD`。
+7. 确认 Current Scan display 指向 `/localization/scan`，并可调整 Size、Style、Color Transformer、Decay Time。
+8. 确认 Local Map display 指向 `/localization/map`，并可调整 Size、Style、Color Transformer、Decay Time。
+9. 如果启用 odometry，打开 Odometry display 并确认 topic 为 `/localization/odometry`。
+10. 用鼠标拖动左侧 Displays 面板边界，确认可以手动收窄。
+11. 如果右侧 Views 面板未显示，通过 `Panels -> Views` 打开并拖到右侧 dock，确认可以切换 Orbit/TopDownOrtho 视角。
+12. 点击 `2D Pose Estimate`。
+13. 在地图区域拖动设置 x/y/yaw。
+14. 检查 `/initialpose` 是否收到消息。
+15. 检查 `/localization/initialization_status` 是否更新。
+16. 检查 `/localization/diagnostics` 是否包含 initialization 字段。
+17. 回放 bag 或接入真实传感器后，观察 `/localization/status` 是否从 `INITIALIZING` 进入 `GOOD`，并确认 `/localization/scan` 与 `/localization/map` 在 RViz2 中同时可见。
 
 ## 成功判据
 
@@ -187,6 +194,8 @@ ros2 topic pub --once /initialpose geometry_msgs/msg/PoseWithCovarianceStamped "
 | 左侧边栏 | Displays、Tool Properties、Views、Time 可见 |
 | TF | `map -> base_link` 可观察，且 `system.pub_tf=true` 时未被破坏 |
 | Pose | `/localization/pose` 可显示 |
+| Scan | `/localization/scan` 可显示，点云位于 map frame 下 |
+| Local Map | `/localization/map` 可显示当前已加载局部 runtime map |
 | Service | 合法请求被接受并更新 initialization status |
 | `/initialpose` | RViz2 和命令行发布均能触发初始化状态更新 |
 | Diagnostics | initialization key-value 存在 |

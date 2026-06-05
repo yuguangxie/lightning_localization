@@ -55,8 +55,19 @@ This package preserves the upstream `config/default*.yaml` files and their key n
 | `visualization.show_pose_topic` | Documents that pose display should be shown by default |
 | `visualization.show_odometry_topic` | Documents odometry display default; odometry publisher remains controlled by `ros_output.publish_odometry` |
 | `visualization.show_tf` | Documents TF display default |
-| `visualization.show_scan_topic` | Documents scan display intent; current package does not publish scan topic |
-| `visualization.show_map_topic` | Documents map display intent; current package does not publish map cloud topic |
+| `visualization.show_scan_topic` | Documents that RViz2 should show `/localization/scan` by default |
+| `visualization.show_map_topic` | Documents that RViz2 should show `/localization/map` by default |
+
+## Point Cloud ROS Output
+
+| Key | Purpose |
+|---|---|
+| `ros_output.publish_scan` | Publish current localized scan as `sensor_msgs/msg/PointCloud2`; default true |
+| `ros_output.scan_topic` | Current localized scan topic, default `/localization/scan` |
+| `ros_output.publish_map` | Publish currently loaded local tiled runtime map as `sensor_msgs/msg/PointCloud2`; default true |
+| `ros_output.map_topic` | Local runtime map topic, default `/localization/map` |
+| `ros_output.scan_min_period_sec` | Minimum period between scan topic publications |
+| `ros_output.map_min_period_sec` | Minimum period between local map topic publications |
 
 ## Initialization
 

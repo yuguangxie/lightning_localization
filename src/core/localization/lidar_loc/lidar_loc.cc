@@ -429,9 +429,16 @@ void LidarLoc::UpdateMapThread() {
         if (map_->MapUpdated() || map_->DynamicMapUpdated()) {
             UpdateGlobalMap();
 
+            auto static_cloud = map_->GetStaticCloud();
+            auto dynamic_cloud = map_->GetDynamicCloud();
+
             if (ui_) {
-                ui_->UpdatePointCloudGlobal(map_->GetStaticCloud());
-                ui_->UpdatePointCloudDynamic(map_->GetDynamicCloud());
+                ui_->UpdatePointCloudGlobal(static_cloud);
+                ui_->UpdatePointCloudDynamic(dynamic_cloud);
+            }
+
+            if (map_cloud_callback_) {
+                map_cloud_callback_(map_->GetAllMap());
             }
 
             map_->CleanMapUpdate();
@@ -447,6 +454,9 @@ void LidarLoc::SetInitialPose(SE3 init_pose) {
 
     initial_pose_set_ = true;
     initial_pose_ = init_pose;
+    if (map_) {
+        map_->LoadOnPose(initial_pose_);
+    }
     LOG(INFO) << "Set initial pose is: " << initial_pose_.translation().transpose();
 }
 

@@ -80,12 +80,20 @@ class LocSystem {
         bool publish_odometry_ = false;
         std::string odometry_topic_ = "/localization/odometry";
 
+        bool publish_scan_ = true;
+        std::string scan_topic_ = "/localization/scan";
+
+        bool publish_map_ = true;
+        std::string map_topic_ = "/localization/map";
+
         bool publish_invalid_result_ = false;
         std::string map_frame_ = "map";
         std::string base_frame_ = "base_link";
 
         double diagnostics_min_period_sec_ = 0.1;
         double status_min_period_sec_ = 0.1;
+        double scan_min_period_sec_ = 0.05;
+        double map_min_period_sec_ = 1.0;
 
         std::string odometry_covariance_source_ = "static_config_placeholder";
         std::array<double, 3> odometry_position_covariance_ = {1.0, 1.0, 1.0};
@@ -138,6 +146,10 @@ class LocSystem {
     std_msgs::msg::String MakeInitializationStatusString(double timestamp) const;
     diagnostic_msgs::msg::DiagnosticArray MakeDiagnosticArray(const loc::LocalizationResult& result) const;
     nav_msgs::msg::Odometry MakeOdometry(const loc::LocalizationResult& result) const;
+    sensor_msgs::msg::PointCloud2 MakePointCloud2(const CloudPtr& cloud, const std::string& frame_id,
+                                                  double timestamp) const;
+    void PublishScanCloud(const CloudPtr& scan, const SE3& pose, double timestamp);
+    void PublishMapCloud(const CloudPtr& map);
     builtin_interfaces::msg::Time ToRosTime(double timestamp) const;
     std::string StatusToString(loc::LocalizationStatus status) const;
     std::string NormalizeInitializationSource(const std::string& source) const;
@@ -179,6 +191,8 @@ class LocSystem {
     double last_status_pub_time_ = -std::numeric_limits<double>::infinity();
     double last_diagnostics_pub_time_ = -std::numeric_limits<double>::infinity();
     double last_initialization_status_pub_time_ = -std::numeric_limits<double>::infinity();
+    double last_scan_pub_time_ = -std::numeric_limits<double>::infinity();
+    double last_map_pub_time_ = -std::numeric_limits<double>::infinity();
 
     rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_sub_ = nullptr;
     rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr cloud_sub_ = nullptr;
@@ -192,6 +206,8 @@ class LocSystem {
     rclcpp::Publisher<std_msgs::msg::String>::SharedPtr initialization_status_pub_ = nullptr;
     rclcpp::Publisher<diagnostic_msgs::msg::DiagnosticArray>::SharedPtr diagnostics_pub_ = nullptr;
     rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odometry_pub_ = nullptr;
+    rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr scan_pub_ = nullptr;
+    rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr map_pub_ = nullptr;
 };
 
 };  // namespace lightning

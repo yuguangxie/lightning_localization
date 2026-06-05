@@ -70,10 +70,14 @@ ros2 launch lightning_localization loc_online.launch.py \
 | TF | 开启 | `map -> base_link` | 显示定位 TF 树 |
 | Localization Pose | 开启 | `/localization/pose` | 显示 `geometry_msgs/msg/PoseStamped` 定位位姿 |
 | Localization Odometry | 关闭 | `/localization/odometry` | odometry 默认不发布，启用 `ros_output.publish_odometry` 后再打开 |
-| Current Scan | 关闭 | `/localization/scan` | 当前包未发布 scan topic，作为后续可视化预留 |
-| Local Map | 关闭 | `/localization/map` | 当前包未发布 map cloud topic，作为后续可视化预留 |
+| Current Scan | 开启 | `/localization/scan` | 显示已按定位 pose 变换到 `map` frame 的当前扫描点云 |
+| Local Map | 开启 | `/localization/map` | 显示当前已加载的局部 tiled runtime map，使用 transient local QoS |
 | Localization Markers | 关闭 | `/localization/markers` | 当前包未发布 marker topic |
 | Localization Path | 关闭 | `/localization/path` | 当前包未发布 path topic |
+
+`/localization/scan` 不是原始 LiDAR topic，而是定位模块处理后的当前 scan 可视化输出。`/localization/map` 是当前加载的局部 runtime map，不一定是完整全局地图；它会随 `TiledMap::LoadOnPose()` 的 chunk 加载更新。
+
+左侧 Displays 面板不会隐藏，可以用鼠标拖动面板边界手动收窄到较窄宽度。右侧 dock 不隐藏，`Views` 面板存在；如果你的 RViz2 启动后 `Views` 未停靠在右侧，可在菜单 `Panels -> Views` 打开，并把面板拖到右侧 dock，用于 Orbit、TopDownOrtho 等视角切换。
 
 Diagnostics 没有 RViz2 原生 display，本轮通过 topic echo 或诊断面板工具检查：
 
@@ -229,6 +233,14 @@ std_msgs/msg/String
 默认 YAML 增加：
 
 ```yaml
+ros_output:
+  publish_scan: true
+  scan_topic: "/localization/scan"
+  publish_map: true
+  map_topic: "/localization/map"
+  scan_min_period_sec: 0.05
+  map_min_period_sec: 1.0
+
 visualization:
   enable_rviz: false
   rviz_config: "rviz/lightning_localization.rviz"
@@ -237,8 +249,8 @@ visualization:
   show_pose_topic: true
   show_odometry_topic: false
   show_tf: true
-  show_scan_topic: false
-  show_map_topic: false
+  show_scan_topic: true
+  show_map_topic: true
 
 initialization:
   source: "default"

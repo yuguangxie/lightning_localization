@@ -127,7 +127,7 @@ geometry_msgs/msg/PoseWithCovarianceStamped
 | `LocSystem::SetInitPose()` | 保留公开接口，内部复用统一 `ApplyInitialPose()` |
 | `LocSystem::ApplyInitialPose()` | 统一应用入口，先检查 `core_initialized_`，再区分 accepted、applied 和 localization success |
 | `Localization::SetExternalPose()` | 继续作为外部 pose 注入到定位核心的入口 |
-| `LidarLoc::SetInitialPose()` | 保持原语义，设置 scan-to-map 初始位姿 |
+| `LidarLoc::SetInitialPose()` | 保持原语义，设置 scan-to-map 初始位姿；同时按该 pose 触发 `TiledMap::LoadOnPose()`，让 RViz2 `/localization/map` 尽快显示附近局部地图 |
 
 ## 后续阶段二可扩展项
 

@@ -3,9 +3,11 @@
 #include <pcl/registration/icp.h>
 #include <chrono>
 #include <deque>
+#include <functional>
 #include <iostream>
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include <thread>
+#include <utility>
 
 #include "common/nav_state.h"
 #include "common/timed_pose.h"
@@ -137,6 +139,9 @@ class LidarLoc {
     /// 激光定位是否认为LO有效
     bool LidarLocThinkLOReliable() { return lo_reliable_; }
 
+    using MapCloudCallback = std::function<void(CloudPtr cloud)>;
+    void SetMapCloudCallback(MapCloudCallback&& callback) { map_cloud_callback_ = std::move(callback); }
+
    private:
     // 内部函数  ==========================================================================
     /**
@@ -261,6 +266,7 @@ class LidarLoc {
     bool update_map_quit_ = false;
     std::thread update_map_thread_;            // 地图更新
     std::shared_ptr<TiledMap> map_ = nullptr;  // 地图
+    MapCloudCallback map_cloud_callback_;
     double map_height_ = 0;
 
     bool has_set_pose_ = false;  // 外部set_pose标志位，若存在则本次动态图层不落盘

@@ -14,6 +14,8 @@
 #include <sstream>
 #include <utility>
 
+#include <pcl/common/transforms.h>
+
 namespace lightning {
 
 namespace {
@@ -167,6 +169,9 @@ bool LocSystem::Init(const std::string &yaml_path) {
     }
 
     loc_->SetResultCallback([this](const loc::LocalizationResult &result) { PublishLocalizationTopics(result); });
+    loc_->SetScanCloudCallback(
+        [this](CloudPtr scan, const SE3& pose, double timestamp) { PublishScanCloud(scan, pose, timestamp); });
+    loc_->SetMapCloudCallback([this](CloudPtr map) { PublishMapCloud(map); });
 
     bool ret = loc_->Init(yaml_path, map_path_);
     if (!ret) {
@@ -210,6 +215,16 @@ void LocSystem::LoadRosOutputOptions(const std::string& yaml_path) {
     ros_output_options_.odometry_topic_ =
         ReadYamlValueOr<std::string>(output, "odometry_topic", ros_output_options_.odometry_topic_);
 
+    ros_output_options_.publish_scan_ =
+        ReadYamlValueOr<bool>(output, "publish_scan", ros_output_options_.publish_scan_);
+    ros_output_options_.scan_topic_ =
+        ReadYamlValueOr<std::string>(output, "scan_topic", ros_output_options_.scan_topic_);
+
+    ros_output_options_.publish_map_ =
+        ReadYamlValueOr<bool>(output, "publish_map", ros_output_options_.publish_map_);
+    ros_output_options_.map_topic_ =
+        ReadYamlValueOr<std::string>(output, "map_topic", ros_output_options_.map_topic_);
+
     ros_output_options_.publish_invalid_result_ =
         ReadYamlValueOr<bool>(output, "publish_invalid_result", ros_output_options_.publish_invalid_result_);
     ros_output_options_.map_frame_ =
@@ -222,6 +237,10 @@ void LocSystem::LoadRosOutputOptions(const std::string& yaml_path) {
                                 ros_output_options_.diagnostics_min_period_sec_);
     ros_output_options_.status_min_period_sec_ =
         ReadYamlValueOr<double>(output, "status_min_period_sec", ros_output_options_.status_min_period_sec_);
+    ros_output_options_.scan_min_period_sec_ =
+        ReadYamlValueOr<double>(output, "scan_min_period_sec", ros_output_options_.scan_min_period_sec_);
+    ros_output_options_.map_min_period_sec_ =
+        ReadYamlValueOr<double>(output, "map_min_period_sec", ros_output_options_.map_min_period_sec_);
 
     ros_output_options_.odometry_covariance_source_ =
         ReadYamlValueOr<std::string>(output, "odometry_covariance_source",
@@ -325,6 +344,17 @@ void LocSystem::CreateRosOutputPublishers() {
 
     if (ros_output_options_.publish_odometry_) {
         odometry_pub_ = node_->create_publisher<nav_msgs::msg::Odometry>(ros_output_options_.odometry_topic_, qos);
+    }
+
+    if (ros_output_options_.publish_scan_) {
+        scan_pub_ =
+            node_->create_publisher<sensor_msgs::msg::PointCloud2>(ros_output_options_.scan_topic_,
+                                                                   rclcpp::SensorDataQoS());
+    }
+
+    if (ros_output_options_.publish_map_) {
+        map_pub_ = node_->create_publisher<sensor_msgs::msg::PointCloud2>(
+            ros_output_options_.map_topic_, rclcpp::QoS(1).reliable().transient_local());
     }
 }
 
@@ -497,6 +527,48 @@ nav_msgs::msg::Odometry LocSystem::MakeOdometry(const loc::LocalizationResult& r
     msg.pose.covariance[35] = ros_output_options_.odometry_orientation_covariance_[2];
 
     return msg;
+}
+
+sensor_msgs::msg::PointCloud2 LocSystem::MakePointCloud2(const CloudPtr& cloud, const std::string& frame_id,
+                                                         double timestamp) const {
+    sensor_msgs::msg::PointCloud2 msg;
+    if (cloud) {
+        pcl::toROSMsg(*cloud, msg);
+    }
+    msg.header.frame_id = frame_id;
+    if (timestamp > 0.0) {
+        msg.header.stamp = ToRosTime(timestamp);
+    } else if (node_) {
+        msg.header.stamp = node_->now();
+    }
+    return msg;
+}
+
+void LocSystem::PublishScanCloud(const CloudPtr& scan, const SE3& pose, double timestamp) {
+    if (!scan_pub_ || !scan || scan->empty()) {
+        return;
+    }
+
+    if (!ShouldPublishByPeriod(timestamp, ros_output_options_.scan_min_period_sec_, last_scan_pub_time_)) {
+        return;
+    }
+
+    CloudPtr scan_world(new PointCloudType);
+    pcl::transformPointCloud(*scan, *scan_world, pose.matrix().cast<float>());
+    scan_pub_->publish(MakePointCloud2(scan_world, ros_output_options_.map_frame_, timestamp));
+}
+
+void LocSystem::PublishMapCloud(const CloudPtr& map) {
+    if (!map_pub_ || !map || map->empty()) {
+        return;
+    }
+
+    const double timestamp = node_ ? node_->now().seconds() : 0.0;
+    if (!ShouldPublishByPeriod(timestamp, ros_output_options_.map_min_period_sec_, last_map_pub_time_)) {
+        return;
+    }
+
+    map_pub_->publish(MakePointCloud2(map, ros_output_options_.map_frame_, timestamp));
 }
 
 builtin_interfaces::msg::Time LocSystem::ToRosTime(double timestamp) const {
