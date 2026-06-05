@@ -72,6 +72,7 @@ ros2 run lightning_localization run_loc_offline --config ./config/default.yaml -
 ```
 
 Launch wrappers are provided in `launch/loc_online.launch.py` and `launch/loc_offline.launch.py`.
+The online and offline executables strip ROS2 launch arguments before gflags parsing, so launch-added arguments such as `--ros-args`, `-r __node:=...`, and `--params-file ...` do not conflict with `--config`, `--input_bag`, or `--map_path`.
 
 Online with RViz2:
 

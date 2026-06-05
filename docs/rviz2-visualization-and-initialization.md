@@ -37,6 +37,8 @@ ros2 launch lightning_localization loc_online.launch.py \
   rviz_config:=/path/to/custom.rviz
 ```
 
+`ros2 launch` 会自动给定位进程追加 ROS 参数，例如 `--ros-args`、`-r __node:=...` 和 `--params-file ...`。`run_loc_online` 会先通过 rclcpp 移除这些 ROS 参数，再把剩余的 `--config` 交给 gflags 解析，因此 launch 启动不应再出现 `unknown command line flag 'params-file'`、`unknown command line flag 'r'` 或 `unknown command line flag 'ros-args'`。
+
 ## Launch 参数
 
 | 参数 | 默认值 | 说明 |

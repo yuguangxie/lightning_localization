@@ -35,6 +35,16 @@ ros2 launch lightning_localization loc_online.launch.py \
   rviz_config:=/path/to/lightning_localization.rviz
 ```
 
+启动时不应再出现以下 gflags 错误：
+
+```text
+unknown command line flag 'params-file'
+unknown command line flag 'r'
+unknown command line flag 'ros-args'
+```
+
+这些参数由 ROS2 launch 自动追加，`run_loc_online` 应在解析 gflags 前移除它们。若仍出现该错误，说明运行的 install 空间不是最新构建结果，需要重新执行 `colcon build --packages-select lightning_localization` 并重新 `source install/setup.bash`。
+
 ## ROS2 节点、topic 和 service 检查
 
 ```bash
