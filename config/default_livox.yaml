@@ -79,6 +79,7 @@ ros_output:
   odometry_topic: "/localization/odometry"
   publish_scan: true
   scan_topic: "/localization/scan"
+  scan_pose_source: "final_pose"
   publish_map: true
   map_topic: "/localization/map"
   publish_invalid_result: false
@@ -86,7 +87,9 @@ ros_output:
   base_frame: "base_link"
   diagnostics_min_period_sec: 0.1
   status_min_period_sec: 0.1
-  scan_min_period_sec: 0.05
+  scan_min_period_sec: 0.5
+  scan_timestamp_tolerance_sec: 0.3
+  scan_publish_only_on_new_scan: true
   map_min_period_sec: 1.0
   odometry_covariance_source: "static_config_placeholder"
   odometry_position_covariance: [1.0, 1.0, 1.0]

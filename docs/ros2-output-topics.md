@@ -10,7 +10,7 @@ This document describes ROS2 outputs added to the stage-one `lightning_localizat
 | `/localization/status` | `std_msgs/msg/String` | Enabled | Every localization result, throttled by `status_min_period_sec` |
 | `/localization/diagnostics` | `diagnostic_msgs/msg/DiagnosticArray` | Enabled | Every localization result, throttled by `diagnostics_min_period_sec` |
 | `/localization/odometry` | `nav_msgs/msg/Odometry` | Disabled | Every accepted localization result when enabled |
-| `/localization/scan` | `sensor_msgs/msg/PointCloud2` | Enabled | Current undistorted scan transformed into `ros_output.map_frame`, throttled by `scan_min_period_sec` |
+| `/localization/scan` | `sensor_msgs/msg/PointCloud2` | Enabled | Latest valid LidarLoc scan transformed with the same final pose source used by `/localization/pose`, throttled by `scan_min_period_sec` |
 | `/localization/map` | `sensor_msgs/msg/PointCloud2` | Enabled | Loaded local runtime map after tiled map chunk updates, throttled by `map_min_period_sec` |
 | `/localization/initialization_status` | `std_msgs/msg/String` | Enabled | Startup initialization, service/RViz requests, and localization result throttling |
 
@@ -80,13 +80,15 @@ Odometry is disabled by default because this stage-one package does not provide 
 
 ## Point Clouds
 
-`/localization/scan` publishes `sensor_msgs/msg/PointCloud2` for the current LiDAR scan after `LidarLoc` reports `lidar_loc_valid_ == true`. This intentionally uses the scan-to-map result from `LidarLoc`, not the later PGO `LocalizationResult.valid_` flag, because PGO marks the fused result valid at a different stage. The scan is transformed from the localization processing frame into `ros_output.map_frame`, default `map`, using the pose returned by `LidarLoc`. This is intended for RViz2 inspection and should not be treated as a raw sensor topic.
+`/localization/scan` publishes `sensor_msgs/msg/PointCloud2` for RViz2 visualization, not raw sensor data. `Localization::LidarLocProcCloud()` caches the latest scan only after `LidarLoc` reports `lidar_loc_valid_ == true`; the actual ROS2 publication happens later from the same PGO high-frequency output path that drives `/localization/pose`. The scan is transformed into `ros_output.map_frame`, default `map`, using the final `LocalizationResult.pose_` associated with the pose topic. This keeps scan visualization aligned with `/localization/pose` while avoiding high-frequency point cloud publication.
+
+Scan publication is resource-throttled by `ros_output.scan_min_period_sec`, defaults to `0.5` seconds. `ros_output.scan_publish_only_on_new_scan` prevents repeated publication of the same cached scan, and `ros_output.scan_timestamp_tolerance_sec`, default `0.3` seconds, rejects stale scan/pose pairings whose timestamps diverge too far.
 
 `/localization/map` publishes `sensor_msgs/msg/PointCloud2` for the currently loaded local tiled runtime map. It is published when `LidarLoc` reloads map chunks through `TiledMap::LoadOnPose()` and the map update thread refreshes the NDT target. The map publisher uses reliable transient-local QoS so RViz2 can receive the latest local map even if the display subscribes after the first publication.
 
 | Topic | Frame | QoS intent | Config |
 |---|---|---|---|
-| `/localization/scan` | `ros_output.map_frame` | Sensor data QoS, high-frequency visualization | `ros_output.publish_scan`, `ros_output.scan_topic`, `ros_output.scan_min_period_sec` |
+| `/localization/scan` | `ros_output.map_frame` | Sensor data QoS, low-rate pose-aligned visualization | `ros_output.publish_scan`, `ros_output.scan_topic`, `ros_output.scan_pose_source`, `ros_output.scan_min_period_sec`, `ros_output.scan_timestamp_tolerance_sec`, `ros_output.scan_publish_only_on_new_scan` |
 | `/localization/map` | `ros_output.map_frame` | Reliable transient local, chunk-update visualization | `ros_output.publish_map`, `ros_output.map_topic`, `ros_output.map_min_period_sec` |
 
 ## Initialization Status
@@ -157,11 +159,20 @@ ros_output:
   diagnostics_topic: "/localization/diagnostics"
   publish_odometry: false
   odometry_topic: "/localization/odometry"
+  publish_scan: true
+  scan_topic: "/localization/scan"
+  scan_pose_source: "final_pose"
+  publish_map: true
+  map_topic: "/localization/map"
   publish_invalid_result: false
   map_frame: "map"
   base_frame: "base_link"
   diagnostics_min_period_sec: 0.1
   status_min_period_sec: 0.1
+  scan_min_period_sec: 0.5
+  scan_timestamp_tolerance_sec: 0.3
+  scan_publish_only_on_new_scan: true
+  map_min_period_sec: 1.0
   odometry_covariance_source: "static_config_placeholder"
   odometry_position_covariance: [1.0, 1.0, 1.0]
   odometry_orientation_covariance: [0.5, 0.5, 0.5]

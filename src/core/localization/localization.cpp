@@ -110,6 +110,8 @@ bool Localization::Init(const std::string& yaml_path, const std::string& global_
             result_callback_(loc_result_);
         }
 
+        TryPublishPoseAlignedScan(loc_result_);
+
         if (ui_) {
             ui_->UpdateNavState(loc_result_.ToNavState());
             ui_->UpdateRecentPose(loc_result_.pose_);
@@ -246,11 +248,8 @@ void Localization::LidarLocProcCloud(CloudPtr scan_undist) {
     lidar_loc_->ProcessCloud(scan_undist);
 
     auto res = lidar_loc_->GetLocalizationResult();
+    CacheLatestLidarLocScan(scan_undist, res);
     pgo_->ProcessLidarLoc(res);
-
-    if (scan_cloud_callback_ && res.lidar_loc_valid_) {
-        scan_cloud_callback_(scan_undist, res.pose_, res.timestamp_);
-    }
 
     if (ui_) {
         // Twi with Til, here pose means Twl, thus Til=I
@@ -371,6 +370,35 @@ void Localization::SetScanCloudCallback(Localization::ScanCloudCallback&& callba
 
 void Localization::SetMapCloudCallback(Localization::MapCloudCallback&& callback) {
     map_cloud_callback_ = std::move(callback);
+}
+
+void Localization::CacheLatestLidarLocScan(const CloudPtr& scan, const LocalizationResult& result) {
+    if (!scan || scan->empty() || !result.lidar_loc_valid_) {
+        return;
+    }
+
+    std::lock_guard<std::mutex> lock(scan_output_mutex_);
+    latest_scan_output_.cloud = scan;
+    latest_scan_output_.timestamp = result.timestamp_;
+    latest_scan_output_.valid = true;
+}
+
+void Localization::TryPublishPoseAlignedScan(const LocalizationResult& result) {
+    if (!scan_cloud_callback_ || !result.valid_) {
+        return;
+    }
+
+    LatestScanOutput latest_scan;
+    {
+        std::lock_guard<std::mutex> lock(scan_output_mutex_);
+        latest_scan = latest_scan_output_;
+    }
+
+    if (!latest_scan.valid || !latest_scan.cloud || latest_scan.cloud->empty()) {
+        return;
+    }
+
+    scan_cloud_callback_(latest_scan.cloud, result.pose_, latest_scan.timestamp, result.timestamp_);
 }
 
 }  // namespace lightning::loc

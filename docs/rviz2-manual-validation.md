@@ -88,6 +88,8 @@ ros2 topic hz /localization/scan
 ros2 topic hz /localization/map
 ```
 
+`/localization/scan` 默认是低频 RViz2 可视化输出，使用最近一次有效 LidarLoc scan 和 `/localization/pose` 同源 final pose 配对发布；默认 `scan_min_period_sec=0.5`，因此 `ros2 topic hz /localization/scan` 预期不会接近原始 LiDAR 频率。
+
 ## Service 调用验证
 
 ```bash

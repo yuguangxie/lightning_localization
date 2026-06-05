@@ -92,7 +92,7 @@ Online mode publishes the original `map -> base_link` TF when `system.pub_tf=tru
 - `/localization/status` as `std_msgs/msg/String`
 - `/localization/diagnostics` as `diagnostic_msgs/msg/DiagnosticArray`
 - `/localization/odometry` as `nav_msgs/msg/Odometry` when explicitly enabled
-- `/localization/scan` as `sensor_msgs/msg/PointCloud2` for the current scan transformed into the map frame
+- `/localization/scan` as low-rate `sensor_msgs/msg/PointCloud2` for the latest valid localization scan transformed with the same final pose source used by `/localization/pose`
 - `/localization/map` as `sensor_msgs/msg/PointCloud2` for the currently loaded local tiled runtime map
 - `/localization/initialization_status` as `std_msgs/msg/String`
 

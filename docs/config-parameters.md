@@ -64,9 +64,12 @@ This package preserves the upstream `config/default*.yaml` files and their key n
 |---|---|
 | `ros_output.publish_scan` | Publish current localized scan as `sensor_msgs/msg/PointCloud2`; default true |
 | `ros_output.scan_topic` | Current localized scan topic, default `/localization/scan` |
+| `ros_output.scan_pose_source` | Pose source used to transform scan visualization; default `final_pose`, matching `/localization/pose` |
 | `ros_output.publish_map` | Publish currently loaded local tiled runtime map as `sensor_msgs/msg/PointCloud2`; default true |
 | `ros_output.map_topic` | Local runtime map topic, default `/localization/map` |
-| `ros_output.scan_min_period_sec` | Minimum period between scan topic publications |
+| `ros_output.scan_min_period_sec` | Minimum period between scan topic publications; default `0.5` seconds to avoid high-rate RViz point cloud load |
+| `ros_output.scan_timestamp_tolerance_sec` | Maximum allowed timestamp gap between cached scan and final pose before scan publication is skipped; default `0.3` seconds |
+| `ros_output.scan_publish_only_on_new_scan` | Publish each cached scan at most once when true |
 | `ros_output.map_min_period_sec` | Minimum period between local map topic publications |
 
 ## Initialization

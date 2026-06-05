@@ -9,6 +9,7 @@
 #include "core/system/async_message_process.h"
 
 #include <functional>
+#include <mutex>
 #include <utility>
 
 /// 预声明
@@ -81,7 +82,8 @@ class Localization {
     using LocStateCallback = std::function<void(const std_msgs::msg::Int32& state)>;
     using PointcloudBodyCallback = std::function<void(const sensor_msgs::msg::PointCloud2& pointcloud)>;
     using PointcloudWorldCallback = std::function<void(const sensor_msgs::msg::PointCloud2& pointcloud)>;
-    using ScanCloudCallback = std::function<void(CloudPtr cloud, const SE3& pose, double timestamp)>;
+    using ScanCloudCallback =
+        std::function<void(CloudPtr cloud, const SE3& pose, double scan_timestamp, double pose_timestamp)>;
     using MapCloudCallback = std::function<void(CloudPtr cloud)>;
 
     void SetTFCallback(TFCallback&& callback);
@@ -136,6 +138,18 @@ class Localization {
     double last_imu_time_ = 0;
     double last_odom_time_ = 0;
     double last_cloud_time_ = 0;
+
+    struct LatestScanOutput {
+        CloudPtr cloud = nullptr;
+        double timestamp = 0.0;
+        bool valid = false;
+    };
+
+    void CacheLatestLidarLocScan(const CloudPtr& scan, const LocalizationResult& result);
+    void TryPublishPoseAlignedScan(const LocalizationResult& result);
+
+    std::mutex scan_output_mutex_;
+    LatestScanOutput latest_scan_output_;
 };
 }  // namespace loc
 

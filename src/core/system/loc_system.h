@@ -82,6 +82,7 @@ class LocSystem {
 
         bool publish_scan_ = true;
         std::string scan_topic_ = "/localization/scan";
+        std::string scan_pose_source_ = "final_pose";
 
         bool publish_map_ = true;
         std::string map_topic_ = "/localization/map";
@@ -92,7 +93,9 @@ class LocSystem {
 
         double diagnostics_min_period_sec_ = 0.1;
         double status_min_period_sec_ = 0.1;
-        double scan_min_period_sec_ = 0.05;
+        double scan_min_period_sec_ = 0.5;
+        double scan_timestamp_tolerance_sec_ = 0.3;
+        bool scan_publish_only_on_new_scan_ = true;
         double map_min_period_sec_ = 1.0;
 
         std::string odometry_covariance_source_ = "static_config_placeholder";
@@ -148,7 +151,7 @@ class LocSystem {
     nav_msgs::msg::Odometry MakeOdometry(const loc::LocalizationResult& result) const;
     sensor_msgs::msg::PointCloud2 MakePointCloud2(const CloudPtr& cloud, const std::string& frame_id,
                                                   double timestamp) const;
-    void PublishScanCloud(const CloudPtr& scan, const SE3& pose, double timestamp);
+    void PublishScanCloud(const CloudPtr& scan, const SE3& pose, double scan_timestamp, double pose_timestamp);
     void PublishMapCloud(const CloudPtr& map);
     builtin_interfaces::msg::Time ToRosTime(double timestamp) const;
     std::string StatusToString(loc::LocalizationStatus status) const;
@@ -172,6 +175,7 @@ class LocSystem {
     InitializationRequestState initialization_state_;
     std::string latest_localization_status_ = "IDLE";
     mutable std::mutex initialization_mutex_;
+    std::mutex scan_publish_mutex_;
 
     std::shared_ptr<loc::Localization> loc_ = nullptr;  // 定位接口
 
@@ -192,6 +196,7 @@ class LocSystem {
     double last_diagnostics_pub_time_ = -std::numeric_limits<double>::infinity();
     double last_initialization_status_pub_time_ = -std::numeric_limits<double>::infinity();
     double last_scan_pub_time_ = -std::numeric_limits<double>::infinity();
+    double last_published_scan_timestamp_ = -std::numeric_limits<double>::infinity();
     double last_map_pub_time_ = -std::numeric_limits<double>::infinity();
 
     rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_sub_ = nullptr;

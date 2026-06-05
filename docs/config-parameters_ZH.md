@@ -72,9 +72,12 @@
 |---|---|
 | `ros_output.publish_scan` | 发布当前定位后的实时扫描点云，消息类型为 `sensor_msgs/msg/PointCloud2`，默认开启 |
 | `ros_output.scan_topic` | 当前扫描点云 topic，默认 `/localization/scan` |
+| `ros_output.scan_pose_source` | scan 可视化使用的 pose 来源，默认 `final_pose`，与 `/localization/pose` 同源 |
 | `ros_output.publish_map` | 发布当前已加载的局部 runtime map 点云，消息类型为 `sensor_msgs/msg/PointCloud2`，默认开启 |
 | `ros_output.map_topic` | 局部地图点云 topic，默认 `/localization/map` |
-| `ros_output.scan_min_period_sec` | scan topic 最小发布周期 |
+| `ros_output.scan_min_period_sec` | scan topic 最小发布周期，默认 `0.5` 秒，避免 RViz2 大点云高频刷新占用资源 |
+| `ros_output.scan_timestamp_tolerance_sec` | 缓存 scan 与 final pose 时间戳允许的最大差值，默认 `0.3` 秒，超过则跳过发布 |
+| `ros_output.scan_publish_only_on_new_scan` | 为 true 时同一帧缓存 scan 最多发布一次 |
 | `ros_output.map_min_period_sec` | map topic 最小发布周期 |
 | `visualization.show_scan_topic` | RViz2 默认显示 `/localization/scan` |
 | `visualization.show_map_topic` | RViz2 默认显示 `/localization/map` |

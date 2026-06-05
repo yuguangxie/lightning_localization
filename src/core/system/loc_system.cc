@@ -169,8 +169,9 @@ bool LocSystem::Init(const std::string &yaml_path) {
     }
 
     loc_->SetResultCallback([this](const loc::LocalizationResult &result) { PublishLocalizationTopics(result); });
-    loc_->SetScanCloudCallback(
-        [this](CloudPtr scan, const SE3& pose, double timestamp) { PublishScanCloud(scan, pose, timestamp); });
+    loc_->SetScanCloudCallback([this](CloudPtr scan, const SE3& pose, double scan_timestamp, double pose_timestamp) {
+        PublishScanCloud(scan, pose, scan_timestamp, pose_timestamp);
+    });
     loc_->SetMapCloudCallback([this](CloudPtr map) { PublishMapCloud(map); });
 
     bool ret = loc_->Init(yaml_path, map_path_);
@@ -219,6 +220,13 @@ void LocSystem::LoadRosOutputOptions(const std::string& yaml_path) {
         ReadYamlValueOr<bool>(output, "publish_scan", ros_output_options_.publish_scan_);
     ros_output_options_.scan_topic_ =
         ReadYamlValueOr<std::string>(output, "scan_topic", ros_output_options_.scan_topic_);
+    ros_output_options_.scan_pose_source_ =
+        ReadYamlValueOr<std::string>(output, "scan_pose_source", ros_output_options_.scan_pose_source_);
+    if (LowerString(ros_output_options_.scan_pose_source_) != "final_pose") {
+        LOG(WARNING) << "unsupported ros_output.scan_pose_source=" << ros_output_options_.scan_pose_source_
+                     << "; using final_pose.";
+        ros_output_options_.scan_pose_source_ = "final_pose";
+    }
 
     ros_output_options_.publish_map_ =
         ReadYamlValueOr<bool>(output, "publish_map", ros_output_options_.publish_map_);
@@ -239,6 +247,12 @@ void LocSystem::LoadRosOutputOptions(const std::string& yaml_path) {
         ReadYamlValueOr<double>(output, "status_min_period_sec", ros_output_options_.status_min_period_sec_);
     ros_output_options_.scan_min_period_sec_ =
         ReadYamlValueOr<double>(output, "scan_min_period_sec", ros_output_options_.scan_min_period_sec_);
+    ros_output_options_.scan_timestamp_tolerance_sec_ =
+        ReadYamlValueOr<double>(output, "scan_timestamp_tolerance_sec",
+                                ros_output_options_.scan_timestamp_tolerance_sec_);
+    ros_output_options_.scan_publish_only_on_new_scan_ =
+        ReadYamlValueOr<bool>(output, "scan_publish_only_on_new_scan",
+                              ros_output_options_.scan_publish_only_on_new_scan_);
     ros_output_options_.map_min_period_sec_ =
         ReadYamlValueOr<double>(output, "map_min_period_sec", ros_output_options_.map_min_period_sec_);
 
@@ -544,18 +558,31 @@ sensor_msgs::msg::PointCloud2 LocSystem::MakePointCloud2(const CloudPtr& cloud, 
     return msg;
 }
 
-void LocSystem::PublishScanCloud(const CloudPtr& scan, const SE3& pose, double timestamp) {
+void LocSystem::PublishScanCloud(const CloudPtr& scan, const SE3& pose, double scan_timestamp, double pose_timestamp) {
     if (!scan_pub_ || !scan || scan->empty()) {
         return;
     }
 
-    if (!ShouldPublishByPeriod(timestamp, ros_output_options_.scan_min_period_sec_, last_scan_pub_time_)) {
+    std::lock_guard<std::mutex> lock(scan_publish_mutex_);
+
+    if (ros_output_options_.scan_publish_only_on_new_scan_ &&
+        std::abs(scan_timestamp - last_published_scan_timestamp_) < 1e-9) {
+        return;
+    }
+
+    if (ros_output_options_.scan_timestamp_tolerance_sec_ > 0.0 &&
+        std::abs(scan_timestamp - pose_timestamp) > ros_output_options_.scan_timestamp_tolerance_sec_) {
+        return;
+    }
+
+    if (!ShouldPublishByPeriod(pose_timestamp, ros_output_options_.scan_min_period_sec_, last_scan_pub_time_)) {
         return;
     }
 
     CloudPtr scan_world(new PointCloudType);
     pcl::transformPointCloud(*scan, *scan_world, pose.matrix().cast<float>());
-    scan_pub_->publish(MakePointCloud2(scan_world, ros_output_options_.map_frame_, timestamp));
+    scan_pub_->publish(MakePointCloud2(scan_world, ros_output_options_.map_frame_, pose_timestamp));
+    last_published_scan_timestamp_ = scan_timestamp;
 }
 
 void LocSystem::PublishMapCloud(const CloudPtr& map) {

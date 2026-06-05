@@ -70,12 +70,12 @@ ros2 launch lightning_localization loc_online.launch.py \
 | TF | 开启 | `map -> base_link` | 显示定位 TF 树 |
 | Localization Pose | 开启 | `/localization/pose` | 显示 `geometry_msgs/msg/PoseStamped` 定位位姿 |
 | Localization Odometry | 关闭 | `/localization/odometry` | odometry 默认不发布，启用 `ros_output.publish_odometry` 后再打开 |
-| Current Scan | 开启 | `/localization/scan` | 显示已按定位 pose 变换到 `map` frame 的当前扫描点云 |
+| Current Scan | 开启 | `/localization/scan` | 显示最近一次有效 LidarLoc scan 按 `/localization/pose` 同源 final pose 变换到 `map` frame 后的低频点云 |
 | Local Map | 开启 | `/localization/map` | 显示当前已加载的局部 tiled runtime map，使用 transient local QoS |
 | Localization Markers | 关闭 | `/localization/markers` | 当前包未发布 marker topic |
 | Localization Path | 关闭 | `/localization/path` | 当前包未发布 path topic |
 
-`/localization/scan` 不是原始 LiDAR topic，而是定位模块处理后的当前 scan 可视化输出。`/localization/map` 是当前加载的局部 runtime map，不一定是完整全局地图；它会随 `TiledMap::LoadOnPose()` 的 chunk 加载更新。
+`/localization/scan` 不是原始 LiDAR topic，而是定位模块处理后的 scan 可视化输出。系统会缓存最近一次 `LidarLoc` 有效 scan，并在 `/localization/pose` 同源的 PGO final pose 输出路径中低频发布，因此 RViz2 中 scan 的位置与 pose 输出保持一致。`/localization/map` 是当前加载的局部 runtime map，不一定是完整全局地图；它会随 `TiledMap::LoadOnPose()` 的 chunk 加载更新。
 
 左侧 Displays 面板不会隐藏，可以用鼠标拖动面板边界手动收窄到较窄宽度。右侧 dock 不隐藏，`Views` 面板存在；如果你的 RViz2 启动后 `Views` 未停靠在右侧，可在菜单 `Panels -> Views` 打开，并把面板拖到右侧 dock，用于 Orbit、TopDownOrtho 等视角切换。
 
@@ -236,9 +236,12 @@ std_msgs/msg/String
 ros_output:
   publish_scan: true
   scan_topic: "/localization/scan"
+  scan_pose_source: "final_pose"
   publish_map: true
   map_topic: "/localization/map"
-  scan_min_period_sec: 0.05
+  scan_min_period_sec: 0.5
+  scan_timestamp_tolerance_sec: 0.3
+  scan_publish_only_on_new_scan: true
   map_min_period_sec: 1.0
 
 visualization:

@@ -38,7 +38,7 @@
 
 当前如果用户手工启动 RViz2 并手工添加显示项，理论上可观察 `map -> base_link` TF、`/localization/pose`、可选 `/localization/odometry`。但当前包没有安装 RViz2 配置文件，也没有 launch 自动启动 RViz2，因此无法提供开箱即用的可视化布局。
 
-当前已新增 `/localization/scan` 和 `/localization/map` 两个 `sensor_msgs/msg/PointCloud2` 输出，RViz2 配置默认开启 Current Scan 和 Local Map display。`/localization/scan` 是按定位结果变换到 `map` frame 的当前扫描点云；`/localization/map` 是当前已加载的局部 tiled runtime map。path 和 marker topic 仍未发布，相关 display 仍保持关闭或预留。
+当前已新增 `/localization/scan` 和 `/localization/map` 两个 `sensor_msgs/msg/PointCloud2` 输出，RViz2 配置默认开启 Current Scan 和 Local Map display。`/localization/scan` 是最近一次有效 LidarLoc scan 按 `/localization/pose` 同源 final pose 低频变换到 `map` frame 的可视化点云；`/localization/map` 是当前已加载的局部 tiled runtime map。path 和 marker topic 仍未发布，相关 display 仍保持关闭或预留。
 
 ## 当前 `/initialpose` 与外部 pose 注入状态
 
