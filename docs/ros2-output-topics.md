@@ -80,7 +80,7 @@ Odometry is disabled by default because this stage-one package does not provide 
 
 ## Point Clouds
 
-`/localization/scan` publishes `sensor_msgs/msg/PointCloud2` for the current LiDAR scan after the localization core has a valid localization result. The scan is transformed from the localization processing frame into `ros_output.map_frame`, default `map`, using the pose returned by `LidarLoc`. This is intended for RViz2 inspection and should not be treated as a raw sensor topic.
+`/localization/scan` publishes `sensor_msgs/msg/PointCloud2` for the current LiDAR scan after `LidarLoc` reports `lidar_loc_valid_ == true`. This intentionally uses the scan-to-map result from `LidarLoc`, not the later PGO `LocalizationResult.valid_` flag, because PGO marks the fused result valid at a different stage. The scan is transformed from the localization processing frame into `ros_output.map_frame`, default `map`, using the pose returned by `LidarLoc`. This is intended for RViz2 inspection and should not be treated as a raw sensor topic.
 
 `/localization/map` publishes `sensor_msgs/msg/PointCloud2` for the currently loaded local tiled runtime map. It is published when `LidarLoc` reloads map chunks through `TiledMap::LoadOnPose()` and the map update thread refreshes the NDT target. The map publisher uses reliable transient-local QoS so RViz2 can receive the latest local map even if the display subscribes after the first publication.
 

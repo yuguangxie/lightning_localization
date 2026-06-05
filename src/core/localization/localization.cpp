@@ -248,7 +248,7 @@ void Localization::LidarLocProcCloud(CloudPtr scan_undist) {
     auto res = lidar_loc_->GetLocalizationResult();
     pgo_->ProcessLidarLoc(res);
 
-    if (scan_cloud_callback_ && res.valid_) {
+    if (scan_cloud_callback_ && res.lidar_loc_valid_) {
         scan_cloud_callback_(scan_undist, res.pose_, res.timestamp_);
     }
 
